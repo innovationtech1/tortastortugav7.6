@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tortas Tortuga - San Antonio</title>
+    <meta name="description" content="Las mejores tortas de San Antonio, Texas. ¡Pide ahora!">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">🐢 Tortas Tortuga</div>
+        <div class="cart-icon" id="cart-icon">
+            🛒 <span id="cart-count">0</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Las Verdaderas Tortas de Texas</h1>
+            <p>Todos nuestros combos incluyen Chips y Refresco de Lata.</p>
+        </section>
+
+        <section class="menu" id="menu-container">
+            <!-- Productos renderizados por JS -->
+        </section>
+    </main>
+
+    <!-- Modal Carrito -->
+    <div class="modal-overlay" id="cart-modal">
+        <div class="cart-container">
+            <div class="cart-header">
+                <h2>Tu Pedido</h2>
+                <button id="close-cart" class="close-btn">×</button>
+            </div>
+            <div class="cart-items" id="cart-items">
+                <!-- Items del carrito -->
+                <p class="empty-cart">Tu carrito está vacío 🥺</p>
+            </div>
+            <div class="cart-footer">
+                <div class="total-row">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+                <div class="checkout-form">
+                    <input type="text" id="customer-name" placeholder="Tu Nombre" required>
+                    <input type="tel" id="customer-phone" placeholder="Tu Teléfono (opcional)" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; font-family: inherit;">
+                    <button id="checkout-btn" class="whatsapp-btn">Pedir por WhatsApp 💬</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
