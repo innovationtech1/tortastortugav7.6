@@ -74,6 +74,62 @@
                 </select>
                 <button class="add-to-cart" onclick="addToCart('camarones', '4. Camarones con Jamón')">Agregar al Pedido</button>
             </div>
+
+            <!-- Torta 5: Vegetariana -->
+            <div class="product-card">
+                <div class="product-badge badge-veg">🌱 Vegetariana</div>
+                <h3 class="product-title">5. La Jardín</h3>
+                <p class="product-desc">Aguacate cremoso, queso panela derretido, rajas de chile poblano, champiñones salteados, espinaca fresca, tomate, cebolla morada y aderezo de limón. ¡Fresca y llena de sabor!</p>
+                <div class="product-includes">✅ Incluye Chips y Refresco</div>
+                <select class="size-selector" id="select-jardin">
+                    <option value="14">3 Rebanadas - $14</option>
+                    <option value="16">6 Rebanadas - $16</option>
+                    <option value="17">10 Rebanadas - $17</option>
+                </select>
+                <button class="add-to-cart" onclick="addToCart('jardin', '5. La Jardín')">Agregar al Pedido</button>
+            </div>
+
+            <!-- Torta 6: Solo Carne -->
+            <div class="product-card">
+                <div class="product-badge badge-meat">🥩 Solo Carne</div>
+                <h3 class="product-title">6. La Carnívora</h3>
+                <p class="product-desc">Triple amenaza de carnes: jamón de pierna, chorizo y tocino crujiente, todo en una sola torta. Con jalapeños toreados, cebolla caramelizada y crema. Para los verdaderos carnívoros.</p>
+                <div class="product-includes">✅ Incluye Chips y Refresco</div>
+                <select class="size-selector" id="select-carnivora">
+                    <option value="16">3 Rebanadas - $16</option>
+                    <option value="18">6 Rebanadas - $18</option>
+                    <option value="20">10 Rebanadas - $20</option>
+                </select>
+                <button class="add-to-cart" onclick="addToCart('carnivora', '6. La Carnívora')">Agregar al Pedido</button>
+            </div>
+
+            <!-- Torta 7: Milanesa -->
+            <div class="product-card">
+                <div class="product-badge badge-special">⭐ Especial</div>
+                <h3 class="product-title">7. La Milanesa</h3>
+                <p class="product-desc">Milanesa de res apanada y dorada a la perfección, con aguacate, jitomate, lechuga, crema y queso Chihuahua. Un clásico que nunca decepciona, con nuestro toque Tortuga.</p>
+                <div class="product-includes">✅ Incluye Chips y Refresco</div>
+                <select class="size-selector" id="select-milanesa">
+                    <option value="15">3 Rebanadas - $15</option>
+                    <option value="17">6 Rebanadas - $17</option>
+                    <option value="19">10 Rebanadas - $19</option>
+                </select>
+                <button class="add-to-cart" onclick="addToCart('milanesa', '7. La Milanesa')">Agregar al Pedido</button>
+            </div>
+
+            <!-- Torta 8: El Madrugador -->
+            <div class="product-card">
+                <div class="product-badge badge-breakfast">🌅 Desayuno</div>
+                <h3 class="product-title">8. El Madrugador</h3>
+                <p class="product-desc">Chorizo de San Manuel, huevo estrellado, frijoles negros refritos, queso Oaxaca derretido, aguacate y salsa verde casera. La torta perfecta para empezar el día con energía.</p>
+                <div class="product-includes">✅ Incluye Chips y Refresco</div>
+                <select class="size-selector" id="select-madrugador">
+                    <option value="14">3 Rebanadas - $14</option>
+                    <option value="16">6 Rebanadas - $16</option>
+                    <option value="18">10 Rebanadas - $18</option>
+                </select>
+                <button class="add-to-cart" onclick="addToCart('madrugador', '8. El Madrugador')">Agregar al Pedido</button>
+            </div>
         </section>
     </main>
 
@@ -81,9 +137,10 @@
     <div class="modal-overlay" id="cart-modal">
         <div class="cart-container">
             <div class="cart-header">
-                <h2>Tu Pedido</h2>
+                <h3>Tu Pedido</h3>
                 <button id="close-cart" class="close-btn">×</button>
             </div>
+            <div class="cart-body">
             <div class="cart-items" id="cart-items">
                 <!-- Items del carrito -->
                 <p class="empty-cart">Tu carrito está vacío 🥺</p>
@@ -109,8 +166,32 @@
                     </div>
 
                     <div id="location-section" style="display: none; margin-bottom: 1rem;">
-                        <button type="button" id="get-location-btn" class="location-btn">📍 Obtener mi ubicación actual</button>
-                        <p id="location-status" class="location-status"></p>
+
+                        <!-- Tabs -->
+                        <div class="location-tabs">
+                            <button class="loc-tab active" id="tab-gps" type="button">📍 GPS Automático</button>
+                            <button class="loc-tab" id="tab-address" type="button">🏠 Mi Dirección</button>
+                        </div>
+
+                        <!-- Panel GPS -->
+                        <div id="panel-gps" class="loc-panel">
+                            <button type="button" id="get-location-btn" class="location-btn">📍 Obtener mi ubicación actual</button>
+                            <p class="live-location-hint">💡 Al recibir tu pedido por WhatsApp, comparte tu <strong>ubicación en vivo</strong> para que el repartidor te rastree en tiempo real.</p>
+                            <div id="location-status"></div>
+                        </div>
+
+                        <!-- Panel Dirección Manual -->
+                        <div id="panel-address" class="loc-panel" style="display:none;">
+                            <input type="text" id="addr-street" class="addr-input" placeholder="🏠 Calle y número  ·  Ej: 1234 Flores St">
+                            <input type="text" id="addr-apt" class="addr-input" placeholder="Apt / Suite / Unidad (opcional)">
+                            <div class="addr-row">
+                                <input type="text" id="addr-city" class="addr-input" placeholder="Ciudad" value="San Antonio">
+                                <input type="text" id="addr-zip" class="addr-input addr-zip" placeholder="ZIP Code">
+                            </div>
+                            <button type="button" id="search-address-btn" class="location-btn">🔍 Buscar mi Dirección</button>
+                            <div id="address-status"></div>
+                        </div>
+
                     </div>
 
                     <div class="wait-time-estimate" id="wait-time-display">
@@ -120,9 +201,67 @@
                     <button id="checkout-btn" class="whatsapp-btn">Pedir por WhatsApp 💬</button>
                 </div>
             </div>
+            </div><!-- /cart-body -->
+        </div>
+    </div>
+    <!-- Modal Modificaciones -->
+    <div class="mods-overlay" id="mods-modal">
+        <div class="mods-container">
+            <div class="mods-header">
+                <div>
+                    <h3>Personaliza tu torta</h3>
+                    <p class="mods-subtitle" id="mods-item-name"></p>
+                </div>
+                <button class="close-btn" id="close-mods">×</button>
+            </div>
+
+            <div class="mods-body">
+                <!-- Quitar ingredientes -->
+                <div class="mods-section">
+                    <p class="mods-section-title">❌ Quitar ingrediente</p>
+                    <div class="mods-chips">
+                        <label class="mod-chip"><input type="checkbox" value="Sin cebolla"> Sin cebolla</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin tomate"> Sin tomate</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin mayonesa"> Sin mayonesa</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin lechuga"> Sin lechuga</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin aguacate"> Sin aguacate</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin crema"> Sin crema</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin queso"> Sin queso</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin jalapeños"> Sin jalapeños</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin frijoles"> Sin frijoles</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sin sal"> Sin sal</label>
+                    </div>
+                </div>
+
+                <!-- Extras y preferencias -->
+                <div class="mods-section">
+                    <p class="mods-section-title">➕ Extras y preferencias</p>
+                    <div class="mods-chips">
+                        <label class="mod-chip"><input type="checkbox" value="Partida a la mitad"> ✂️ Partida a la mitad</label>
+                        <label class="mod-chip"><input type="checkbox" value="Extra aguacate"> Extra aguacate</label>
+                        <label class="mod-chip"><input type="checkbox" value="Extra queso"> Extra queso</label>
+                        <label class="mod-chip"><input type="checkbox" value="Extra crema"> Extra crema</label>
+                        <label class="mod-chip"><input type="checkbox" value="Extra picante"> 🌶️ Extra picante</label>
+                        <label class="mod-chip"><input type="checkbox" value="Bien tostada"> Bien tostada</label>
+                        <label class="mod-chip"><input type="checkbox" value="Pan suave"> Pan suave</label>
+                        <label class="mod-chip"><input type="checkbox" value="Extra jalapeños"> Extra jalapeños</label>
+                    </div>
+                </div>
+
+                <!-- Nota libre -->
+                <div class="mods-section">
+                    <p class="mods-section-title">📝 Nota especial</p>
+                    <textarea class="mods-notes" id="mods-notes" placeholder="Ej: calentar bien, sin sal, napkins extra..."></textarea>
+                </div>
+            </div>
+
+            <div class="mods-footer">
+                <button class="mods-skip-btn" id="mods-skip">Sin cambios</button>
+                <button class="mods-confirm-btn" id="mods-confirm">✓ Agregar al Pedido</button>
+            </div>
         </div>
     </div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
