@@ -141,25 +141,68 @@
                     <span id="cart-total">$0.00</span>
                 </div>
                 <div class="checkout-form">
-                    <input type="text" id="customer-name" placeholder="Tu Nombre" required>
-                    <input type="tel" id="customer-phone" placeholder="Tu Teléfono (opcional)" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; font-family: inherit;">
-                    
+
+                    <!-- Datos del cliente -->
+                    <div class="form-section-label">👤 Datos del Cliente</div>
+                    <input type="text" id="customer-name" class="form-input" placeholder="Nombre completo" required>
+
+                    <!-- Teléfono OBLIGATORIO -->
+                    <div class="phone-field-wrap">
+                        <span class="phone-flag">📱</span>
+                        <input type="tel" id="customer-phone" class="form-input phone-input"
+                            placeholder="Teléfono · OBLIGATORIO"
+                            inputmode="numeric"
+                            required>
+                        <button type="button" id="locate-by-phone-btn" class="locate-phone-btn" title="Usar teléfono para GPS">
+                            🛰️
+                        </button>
+                    </div>
+                    <p class="phone-hint" id="phone-hint">⚠️ Tu número de teléfono es requerido para identificar tu pedido.</p>
+
+                    <!-- Excepción: sin teléfono / cliente en tienda -->
+                    <label class="no-phone-check" id="no-phone-label">
+                        <input type="checkbox" id="no-phone-checkbox">
+                        <span>🏪 Estoy en la tienda / no tengo teléfono</span>
+                    </label>
+
+                    <!-- Tipo de orden -->
+                    <div class="form-section-label" style="margin-top:1rem;">🚗 Tipo de Entrega</div>
                     <div class="delivery-options">
-                        <label>
+                        <label class="delivery-label">
                             <input type="radio" name="order-type" value="pickup" checked>
-                            Recoger en Tienda
+                            <span>🏪 Recoger en Tienda</span>
                         </label>
-                        <label>
+                        <label class="delivery-label">
                             <input type="radio" name="order-type" value="delivery">
-                            Entrega a Domicilio
+                            <span>🛵 Entrega a Domicilio</span>
                         </label>
                     </div>
 
+                    <!-- Ubicación de la TIENDA (siempre visible) -->
+                    <div class="store-location-card" id="store-location-card">
+                        <div class="store-loc-header">
+                            <span class="store-loc-icon">🐢</span>
+                            <div>
+                                <div class="store-loc-title">Tortas Tortuga — Tienda</div>
+                                <div class="store-loc-addr">San Antonio, TX 78201</div>
+                            </div>
+                            <a href="https://maps.google.com/?q=29.4241,-98.4936" target="_blank" class="store-map-btn">Ver mapa ↗</a>
+                        </div>
+                        <iframe
+                            src="https://www.openstreetmap.org/export/embed.html?bbox=-98.5086,29.4091,-98.4786,29.4391&amp;layer=mapnik&amp;marker=29.4241,-98.4936"
+                            title="Ubicación de Tortas Tortuga"
+                            class="store-map-iframe"
+                            loading="lazy"
+                        ></iframe>
+                    </div>
+
+                    <!-- Sección ubicación del CLIENTE -->
                     <div id="location-section" style="display: none; margin-bottom: 1rem;">
+                        <div class="form-section-label">📍 Tu Ubicación (Entrega)</div>
 
                         <!-- Tabs -->
                         <div class="location-tabs">
-                            <button class="loc-tab active" id="tab-gps" type="button">📍 GPS Automático</button>
+                            <button class="loc-tab active" id="tab-gps" type="button">🛰️ GPS Automático</button>
                             <button class="loc-tab" id="tab-address" type="button">🏠 Mi Dirección</button>
                         </div>
 
@@ -181,7 +224,6 @@
                             <button type="button" id="search-address-btn" class="location-btn">🔍 Buscar mi Dirección</button>
                             <div id="address-status"></div>
                         </div>
-
                     </div>
 
                     <div class="wait-time-estimate" id="wait-time-display">

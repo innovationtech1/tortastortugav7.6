@@ -401,30 +401,8 @@ body {
     }
 }
 
-/* Delivery Options & Location */
-.delivery-options {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-    background: black;
-    padding: 0.5rem;
-    border-radius: 8px;
-}
+/* Delivery Options — ver regla completa más abajo */
 
-.delivery-options label {
-    flex: 1;
-    text-align: center;
-    padding: 0.5rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.delivery-options input[type="radio"] {
-    width: auto;
-    margin-right: 0.5rem;
-    margin-bottom: 0;
-}
 
 .location-btn {
     width: 100%;
@@ -738,4 +716,238 @@ body {
     font-weight: 600;
     margin: 0.15rem 0 0;
     line-height: 1.4;
+}
+
+/* ─── Formulario mejorado ─────────────────────────────────── */
+.form-section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    margin-bottom: 0.65rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 90, 0, 0.15);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+}
+
+/* Estado OK */
+.input-ok {
+    border-color: var(--whatsapp) !important;
+    box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.12) !important;
+}
+
+/* Estado Error */
+.input-error {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 3px rgba(255, 68, 68, 0.12) !important;
+    animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25%       { transform: translateX(-5px); }
+    75%       { transform: translateX(5px); }
+}
+
+/* ─── Campo Teléfono Obligatorio ─────────────────────────── */
+.phone-field-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0;
+}
+
+.phone-flag {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.phone-field-wrap .form-input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.phone-input {
+    border-color: rgba(255, 90, 0, 0.4) !important; /* Resaltar que es requerido */
+}
+
+.locate-phone-btn {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #4285F4, #0F9D58);
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, filter 0.2s;
+    box-shadow: 0 3px 10px rgba(66, 133, 244, 0.3);
+}
+
+.locate-phone-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.06);
+}
+
+.locate-phone-btn:active {
+    transform: scale(0.95);
+}
+
+.phone-hint {
+    font-size: 0.75rem;
+    color: #ff9944;
+    margin: 0.35rem 0 0.8rem;
+    padding-left: 0.2rem;
+    transition: color 0.2s;
+}
+
+/* ─── Delivery Options mejorado ─────────────────────────── */
+.delivery-options {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.delivery-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.6rem 0.5rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.delivery-label:has(input:checked) {
+    border-color: var(--primary);
+    background: rgba(255, 90, 0, 0.12);
+    color: var(--primary);
+}
+
+.delivery-label input[type="radio"] {
+    display: none;
+}
+
+/* ─── Tarjeta Ubicación de la Tienda ────────────────────── */
+.store-location-card {
+    background: rgba(255, 90, 0, 0.06);
+    border: 1px solid rgba(255, 90, 0, 0.2);
+    border-radius: 14px;
+    padding: 0.85rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.store-loc-header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.65rem;
+}
+
+.store-loc-icon {
+    font-size: 1.6rem;
+    flex-shrink: 0;
+}
+
+.store-loc-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.store-loc-addr {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.1rem;
+}
+
+.store-map-btn {
+    margin-left: auto;
+    background: var(--primary);
+    color: white;
+    padding: 0.3rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: filter 0.2s;
+    flex-shrink: 0;
+}
+
+.store-map-btn:hover {
+    filter: brightness(0.88);
+}
+
+.store-map-iframe {
+    width: 100%;
+    height: 130px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: block;
+}
+
+/* ─── Excepción: Sin teléfono / Cliente en tienda ────────── */
+.no-phone-check {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0.4rem 0 0.1rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    user-select: none;
+}
+
+.no-phone-check:has(input:checked) {
+    border-color: var(--whatsapp);
+    background: rgba(37, 211, 102, 0.08);
+    color: var(--whatsapp);
+}
+
+.no-phone-check input[type="checkbox"] {
+    accent-color: var(--whatsapp);
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    cursor: pointer;
 }

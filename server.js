@@ -20,8 +20,9 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    // Ruta del archivo solicitado
-    let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
+    // Limpiar query string antes de resolver la ruta
+    const cleanUrl = req.url.split('?')[0];
+    let filePath = path.join(__dirname, cleanUrl === '/' ? 'index.html' : cleanUrl);
     const ext = path.extname(filePath);
     const contentType = MIME_TYPES[ext] || 'text/plain';
 

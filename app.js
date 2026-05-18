@@ -29,6 +29,9 @@ const locationSection = document.getElementById('location-section');
 const getLocationBtn = document.getElementById('get-location-btn');
 const locationStatus = document.getElementById('location-status');
 const waitTimeDisplay = document.getElementById('wait-time-display');
+const locateByPhoneBtn = document.getElementById('locate-by-phone-btn');
+const phoneHint = document.getElementById('phone-hint');
+const noPhoneCheckbox = document.getElementById('no-phone-checkbox');
 
 // Modal de modificaciones
 const modsModal = document.getElementById('mods-modal');
@@ -139,6 +142,78 @@ function setupEventListeners() {
     document.getElementById('tab-gps').addEventListener('click', () => cambiarTab('gps'));
     document.getElementById('tab-address').addEventListener('click', () => cambiarTab('address'));
     checkoutBtn.addEventListener('click', generarWhatsApp);
+
+    // ── Validación visual del teléfono en tiempo real ──
+    customerPhoneInput.addEventListener('input', () => {
+        const val = customerPhoneInput.value.trim().replace(/\D/g, '');
+        if (val.length >= 10) {
+            customerPhoneInput.classList.remove('input-error');
+            customerPhoneInput.classList.add('input-ok');
+            phoneHint.style.color = 'var(--whatsapp)';
+            phoneHint.textContent = '✅ Número válido — listo para GPS';
+        } else if (val.length > 0) {
+            customerPhoneInput.classList.remove('input-ok', 'input-error');
+            phoneHint.style.color = 'var(--text-muted)';
+            phoneHint.textContent = `📲 ${val.length}/10 dígitos...`;
+        } else {
+            customerPhoneInput.classList.remove('input-ok');
+            customerPhoneInput.classList.add('input-error');
+            phoneHint.style.color = '#ff6b6b';
+            phoneHint.textContent = '⚠️ Tu número de teléfono es requerido para identificar tu pedido.';
+        }
+    });
+
+    // ── Botón GPS desde teléfono ──
+    if (locateByPhoneBtn) {
+        locateByPhoneBtn.addEventListener('click', () => {
+            const tel = customerPhoneInput.value.trim().replace(/\D/g, '');
+            if (tel.length < 10) {
+                customerPhoneInput.classList.add('input-error');
+                phoneHint.style.color = '#ff6b6b';
+                phoneHint.textContent = '❌ Ingresa tu número de 10 dígitos antes de usar GPS.';
+                customerPhoneInput.focus();
+                return;
+            }
+            // Activar entrega a domicilio y obtener GPS
+            const deliveryRadio = document.querySelector('input[name="order-type"][value="delivery"]');
+            if (deliveryRadio) {
+                deliveryRadio.checked = true;
+                deliveryRadio.dispatchEvent(new Event('change'));
+            }
+            cambiarTab('gps');
+            obtenerUbicacion();
+        });
+    }
+
+    // ── Checkbox excepción: sin teléfono / cliente en tienda ──
+    if (noPhoneCheckbox) {
+        noPhoneCheckbox.addEventListener('change', () => {
+            const exento = noPhoneCheckbox.checked;
+            customerPhoneInput.disabled = exento;
+            customerPhoneInput.classList.remove('input-error', 'input-ok', 'phone-input');
+
+            if (exento) {
+                customerPhoneInput.value = '';
+                customerPhoneInput.placeholder = 'Sin teléfono — pedido presencial';
+                customerPhoneInput.style.opacity = '0.4';
+                locateByPhoneBtn.disabled = true;
+                locateByPhoneBtn.style.opacity = '0.3';
+                phoneHint.style.color = 'var(--text-muted)';
+                phoneHint.textContent = '🏪 Modo presencial: el teléfono no es requerido.';
+                // Forzar pickup
+                const pickupRadio = document.querySelector('input[name="order-type"][value="pickup"]');
+                if (pickupRadio) { pickupRadio.checked = true; pickupRadio.dispatchEvent(new Event('change')); }
+            } else {
+                customerPhoneInput.placeholder = 'Teléfono · OBLIGATORIO';
+                customerPhoneInput.style.opacity = '1';
+                customerPhoneInput.classList.add('phone-input');
+                locateByPhoneBtn.disabled = false;
+                locateByPhoneBtn.style.opacity = '1';
+                phoneHint.style.color = '#ff9944';
+                phoneHint.textContent = '⚠️ Tu número de teléfono es requerido para identificar tu pedido.';
+            }
+        });
+    }
 
     // ── Modal de modificaciones ──
     closeModsBtn.addEventListener('click', cerrarModsModal);
@@ -355,10 +430,24 @@ window.seleccionarDireccion = seleccionarDireccion;
 
 function generarWhatsApp() {
     const nombre = customerNameInput.value.trim();
-    const telefono = customerPhoneInput.value.trim();
+    const telefono = customerPhoneInput.value.trim().replace(/\D/g, '');
+
+    const esPresencial = noPhoneCheckbox && noPhoneCheckbox.checked;
+
+    // Validar nombre
     if (!nombre) {
-        alert('Por favor, ingresa tu nombre para el pedido.');
+        customerNameInput.classList.add('input-error');
         customerNameInput.focus();
+        alert('Por favor, ingresa tu nombre para el pedido.');
+        return;
+    }
+
+    // Validar teléfono — OBLIGATORIO (a menos que sea pedido presencial)
+    if (!esPresencial && telefono.length < 10) {
+        customerPhoneInput.classList.add('input-error');
+        phoneHint.style.color = '#ff6b6b';
+        phoneHint.textContent = '❌ Tu número de teléfono es OBLIGATORIO (mínimo 10 dígitos).';
+        customerPhoneInput.focus();
         return;
     }
 
@@ -375,7 +464,11 @@ function generarWhatsApp() {
     let total = 0;
     let mensaje = `*NUEVO PEDIDO - TORTAS TORTUGA* 🐢%0A`;
     mensaje += `*Cliente:* ${nombre}%0A`;
-    if (telefono) mensaje += `*Teléfono:* ${telefono}%0A`;
+    if (esPresencial) {
+        mensaje += `*🏪 Pedido Presencial* (sin teléfono)%0A`;
+    } else {
+        mensaje += `*📱 Teléfono:* ${telefono}%0A`;
+    }
 
     const tipoTexto = currentOrderType === 'delivery' ? 'Entrega a Domicilio' : 'Recoger en Tienda';
     const tiempoEspera = currentOrderType === 'delivery' ? '45 minutos' : '20 minutos';
