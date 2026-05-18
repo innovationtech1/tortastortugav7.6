@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Tortas Tortuga</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0D0D0D;
+            --surface: #1A1A1A;
+            --surface2: #222222;
+            --primary: #FF5A00;
+            --green: #25D366;
+            --yellow: #FFD600;
+            --blue: #2196F3;
+            --purple: #9C27B0;
+            --red: #F44336;
+            --text: #F0F0F0;
+            --muted: #888;
+            --border: rgba(255,255,255,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* ── LOGIN ─────────────────────────────────────────── */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .login-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .login-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+        .login-box h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.25rem; }
+        .login-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .login-input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .login-input:focus { border-color: var(--primary); }
+        .login-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .login-btn:hover { opacity: 0.88; }
+        .login-error { color: var(--red); font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+
+        /* ── DASHBOARD ─────────────────────────────────────── */
+        #dashboard { display: none; }
+
+        .top-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .top-bar-logo { font-size: 1.1rem; font-weight: 800; }
+        .top-bar-logo span { color: var(--primary); }
+        .top-bar-actions { display: flex; gap: 0.75rem; align-items: center; }
+        .refresh-btn, .logout-btn {
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .refresh-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1.25rem;
+        }
+        .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 2rem; font-weight: 800; margin-top: 0.25rem; }
+        .stat-value.orange { color: var(--primary); }
+        .stat-value.green  { color: var(--green); }
+        .stat-value.blue   { color: var(--blue); }
+        .stat-value.yellow { color: var(--yellow); }
+
+        /* Filters */
+        .filters-bar {
+            padding: 0 1.5rem 1rem;
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .filter-btn.active, .filter-btn:hover { background: rgba(255,90,0,0.15); border-color: var(--primary); color: var(--primary); }
+        .search-input {
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            margin-left: auto;
+            min-width: 180px;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus { border-color: var(--primary); }
+
+        /* Table */
+        .table-wrapper { padding: 0 1.5rem 2rem; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        thead tr { background: var(--surface2); }
+        th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .order-id { font-family: monospace; color: var(--primary); font-weight: 700; font-size: 0.82rem; }
+        .order-items { max-width: 280px; color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
+        .order-total { font-weight: 700; color: var(--green); white-space: nowrap; }
+
+        /* Status badges */
+        .status-select {
+            padding: 0.3rem 0.6rem;
+            border-radius: 20px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            outline: none;
+        }
+        .status-nuevo       { background: rgba(37,211,102,0.15); color: #25D366; }
+        .status-prep        { background: rgba(255,214,0,0.15);  color: #FFD600; }
+        .status-listo       { background: rgba(33,150,243,0.15); color: #2196F3; }
+        .status-entregado   { background: rgba(156,39,176,0.15); color: #CE93D8; }
+        .status-cancelado   { background: rgba(244,67,54,0.15);  color: #EF9A9A; }
+
+        .tipo-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+        }
+        .tipo-delivery { background: rgba(33,150,243,0.15); color: #90CAF9; }
+        .tipo-pickup   { background: rgba(255,90,0,0.15);   color: #FFAB91; }
+
+        .empty-msg { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+        .empty-msg .empty-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
+
+        .loading-row { text-align: center; padding: 3rem; color: var(--muted); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { display: inline-block; width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.75rem; }
+
+        /* Config banner */
+        .config-banner {
+            background: rgba(255,90,0,0.1);
+            border: 1px solid rgba(255,90,0,0.3);
+            border-radius: 10px;
+            margin: 1.5rem;
+            padding: 1rem 1.25rem;
+            font-size: 0.88rem;
+            display: none;
+        }
+        .config-banner.visible { display: block; }
+        .config-banner strong { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<!-- ─── LOGIN ─────────────────────────────────────────────────── -->
+<div id="login-screen">
+    <div class="login-box">
+        <div class="login-logo">🐢</div>
+        <h2>Panel Admin</h2>
+        <p>Tortas Tortuga — San Antonio</p>
+        <input type="password" id="password-input" class="login-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter') verificarPassword()">
+        <button class="login-btn" onclick="verificarPassword()">Entrar</button>
+        <p class="login-error" id="login-error">❌ Contraseña incorrecta</p>
+    </div>
+</div>
+
+<!-- ─── DASHBOARD ─────────────────────────────────────────────── -->
+<div id="dashboard">
+    <div class="top-bar">
+        <div class="top-bar-logo">🐢 <span>Tortas Tortuga</span> — Admin</div>
+        <div class="top-bar-actions">
+            <span id="last-update" style="font-size:0.78rem;color:var(--muted)"></span>
+            <button class="refresh-btn" onclick="cargarPedidos()">↻ Actualizar</button>
+            <button class="logout-btn" onclick="logout()">Salir</button>
+        </div>
+    </div>
+
+    <div class="config-banner" id="config-banner">
+        ⚠️ <strong>Configura la URL de tu base de datos:</strong> Abre el archivo <code>admin.html</code> y reemplaza <code>TU_APPS_SCRIPT_URL</code> con la URL de tu Google Apps Script.
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">Total pedidos</div>
+            <div class="stat-value orange" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-value yellow" id="stat-nuevos">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">En preparación</div>
+            <div class="stat-value blue" id="stat-prep">—</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Entregados hoy</div>
+            <div class="stat-value green" id="stat-entregados">—</div>
+        </div>
+    </div>
+
+    <div class="filters-bar">
+        <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
+        <button class="filter-btn" onclick="filtrar(this,'nuevo')">🆕 Nuevos</button>
+        <button class="filter-btn" onclick="filtrar(this,'prep')">🧑‍🍳 En preparación</button>
+        <button class="filter-btn" onclick="filtrar(this,'listo')">✅ Listos</button>
+        <button class="filter-btn" onclick="filtrar(this,'entregado')">🎉 Entregados</button>
+        <input type="text" class="search-input" placeholder="🔍 Buscar cliente..." oninput="buscar(this.value)">
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha/Hora</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Tipo</th>
+                    <th>Orden</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-pedidos">
+                <tr class="loading-row">
+                    <td colspan="8">
+                        <div class="spinner"></div>
+                        <div>Cargando pedidos...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// ─── CONFIGURACIÓN ────────────────────────────────────────────
+const ADMIN_PASSWORD   = 'tortuga2025';  // Cambia esta contraseña
+const APPS_SCRIPT_URL  = 'TU_APPS_SCRIPT_URL'; // Pega aquí la URL de tu Apps Script
+
+let todosPedidos = [];
+let filtroActual = 'todos';
+
+// ─── LOGIN ────────────────────────────────────────────────────
+function verificarPassword() {
+    const pass = document.getElementById('password-input').value;
+    if (pass === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        if (APPS_SCRIPT_URL === 'TU_APPS_SCRIPT_URL') {
+            document.getElementById('config-banner').classList.add('visible');
+        } else {
+            cargarPedidos();
+            setInterval(cargarPedidos, 60000); // Auto-refresh cada 60 seg
+        }
+    } else {
+        document.getElementById('login-error').style.display = 'block';
+    }
+}
+
+function logout() {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('password-input').value = '';
+}
+
+// ─── CARGAR PEDIDOS ──────────────────────────────────────────
+async function cargarPedidos() {
+    try {
+        const res = await fetch(APPS_SCRIPT_URL);
+        const data = await res.json();
+        todosPedidos = data.pedidos || [];
+        actualizarStats();
+        renderTabla(todosPedidos);
+        document.getElementById('last-update').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-US');
+    } catch(e) {
+        document.getElementById('tabla-pedidos').innerHTML = `
+            <tr><td colspan="8" style="text-align:center;padding:3rem;color:#EF9A9A">
+                ❌ Error al conectar. Verifica la URL del Apps Script.
+            </td></tr>`;
+    }
+}
+
+// ─── ESTADÍSTICAS ────────────────────────────────────────────
+function actualizarStats() {
+    document.getElementById('stat-total').textContent = todosPedidos.length;
+    document.getElementById('stat-nuevos').textContent =
+        todosPedidos.filter(p => p['Estado'] && p['Estado'].includes('Nuevo')).length;
+    document.getElementById('stat-prep').textContent =
+        todosPedidos.filter(p => p['Estado'] && p['Estado'].includes('preparación')).length;
+    document.getElementById('stat-entregados').textContent =
+        todosPedidos.filter(p => p['Estado'] && p['Estado'].includes('Entregado')).length;
+}
+
+// ─── RENDER TABLA ────────────────────────────────────────────
+function renderTabla(pedidos) {
+    const tbody = document.getElementById('tabla-pedidos');
+    if (!pedidos.length) {
+        tbody.innerHTML = `<tr><td colspan="8">
+            <div class="empty-msg"><span class="empty-icon">🥺</span>No hay pedidos aún.</div>
+        </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = pedidos.map(p => {
+        const estado   = p['Estado'] || 'Nuevo 🆕';
+        const estadoCls = estado.includes('Nuevo') ? 'status-nuevo'
+                        : estado.includes('preparación') ? 'status-prep'
+                        : estado.includes('Listo') ? 'status-listo'
+                        : estado.includes('Entregado') ? 'status-entregado'
+                        : 'status-cancelado';
+        const tipo = (p['Tipo'] || '').includes('Domicilio') ? 'Delivery 🛵' : 'Pickup 🏪';
+        const tipoCls = tipo.includes('Delivery') ? 'tipo-delivery' : 'tipo-pickup';
+        const id = p['ID'] || '';
+
+        return `<tr>
+            <td><span class="order-id">${id}</span></td>
+            <td style="white-space:nowrap;font-size:0.82rem;">${p['Fecha/Hora'] || ''}</td>
+            <td><strong>${p['Cliente'] || '—'}</strong></td>
+            <td style="font-size:0.82rem;color:var(--muted)">${p['Teléfono'] || '—'}</td>
+            <td><span class="tipo-badge ${tipoCls}">${tipo}</span></td>
+            <td><div class="order-items">${(p['Orden'] || '—').replace(/\n/g,'<br>')}</div></td>
+            <td><span class="order-total">${p['Total'] || '—'}</span></td>
+            <td>
+                <select class="status-select ${estadoCls}"
+                    onchange="cambiarEstado('${id}', this.value, this)">
+                    <option ${estado.includes('Nuevo') ? 'selected' : ''}>Nuevo 🆕</option>
+                    <option ${estado.includes('preparación') ? 'selected' : ''}>En preparación 🧑‍🍳</option>
+                    <option ${estado.includes('Listo') ? 'selected' : ''}>Listo ✅</option>
+                    <option ${estado.includes('Entregado') ? 'selected' : ''}>Entregado 🎉</option>
+                    <option ${estado.includes('Cancelado') ? 'selected' : ''}>Cancelado ❌</option>
+                </select>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ─── CAMBIAR ESTADO ──────────────────────────────────────────
+async function cambiarEstado(id, nuevoEstado, selectEl) {
+    const clases = { 'Nuevo 🆕':'status-nuevo','En preparación 🧑‍🍳':'status-prep',
+                     'Listo ✅':'status-listo','Entregado 🎉':'status-entregado','Cancelado ❌':'status-cancelado' };
+    selectEl.className = 'status-select ' + (clases[nuevoEstado] || 'status-nuevo');
+    try {
+        await fetch(`${APPS_SCRIPT_URL}?action=updateStatus&id=${id}&estado=${encodeURIComponent(nuevoEstado)}`);
+        const pedido = todosPedidos.find(p => p['ID'] === id);
+        if (pedido) pedido['Estado'] = nuevoEstado;
+        actualizarStats();
+    } catch(e) { console.error('Error actualizando estado'); }
+}
+
+// ─── FILTROS ─────────────────────────────────────────────────
+function filtrar(btn, tipo) {
+    filtroActual = tipo;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mapa = { todos:'', nuevo:'Nuevo', prep:'preparación', listo:'Listo', entregado:'Entregado' };
+    const filtrado = tipo === 'todos'
+        ? todosPedidos
+        : todosPedidos.filter(p => (p['Estado']||'').includes(mapa[tipo]));
+    renderTabla(filtrado);
+}
+
+function buscar(texto) {
+    const filtrado = todosPedidos.filter(p =>
+        (p['Cliente']||'').toLowerCase().includes(texto.toLowerCase()) ||
+        (p['Teléfono']||'').includes(texto) ||
+        (p['ID']||'').toLowerCase().includes(texto.toLowerCase())
+    );
+    renderTabla(filtrado);
+}
+</script>
+</body>
+</html>

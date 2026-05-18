@@ -4,6 +4,7 @@
 let cart = [];
 let pendingItem = null;
 const phone_number = '2107713679';
+const APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL'; // ← Pega aqui la URL de tu Google Apps Script
 let customerLocationUrl = '';
 let customerLocationText = '';
 let customerLocationAddress = '';
@@ -398,7 +399,46 @@ function generarWhatsApp() {
 
     const url = `https://wa.me/${phone_number}?text=${mensaje}`;
 
+    // ─── GUARDAR EN BASE DE DATOS (Google Sheets) ────────────────────────
+    if (APPS_SCRIPT_URL !== 'TU_APPS_SCRIPT_URL') {
+        // Construir lista de items legible
+        const itemsTexto = cart.map(item => {
+            let linea = `${item.nombre} (${item.tamano}) $${item.precio}`;
+            if (item.modificaciones && item.modificaciones.length > 0) {
+                linea += ` | Mods: ${item.modificaciones.join(', ')}`;
+            }
+            return linea;
+        }).join('\n');
+
+        const orderData = {
+            nombre:    nombre,
+            telefono:  telefono,
+            tipo:      currentOrderType === 'delivery' ? 'Entrega a Domicilio' : 'Recoger en Tienda',
+            items:     itemsTexto,
+            total:     `$${total.toFixed(2)}`,
+            ubicacion: customerLocationAddress || customerLocationUrl || 'No especificada'
+        };
+
+        guardarPedidoEnDB(orderData);
+    }
+    // ────────────────────────────────────────────────────────────────
+
     window.open(url, '_blank');
+}
+
+// ─── GUARDAR PEDIDO EN GOOGLE SHEETS ──────────────────────────────────
+async function guardarPedidoEnDB(data) {
+    try {
+        await fetch(APPS_SCRIPT_URL, {
+            method:  'POST',
+            mode:    'no-cors', // Necesario para Google Apps Script
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(data)
+        });
+        console.log('✅ Pedido guardado en base de datos');
+    } catch(e) {
+        console.warn('⚠️ No se pudo guardar en DB:', e);
+    }
 }
 
 // Iniciar aplicación
