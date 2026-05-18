@@ -3,7 +3,7 @@
 
 let cart = [];
 let pendingItem = null;
-const phone_number = '2109900532';
+const phone_number = '2107713679';
 let customerLocationUrl = '';
 let customerLocationText = '';
 let customerLocationAddress = '';
