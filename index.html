@@ -233,6 +233,17 @@
                     </div>
                 </div>
 
+                <!-- Estilo de Preparación -->
+                <div class="mods-section">
+                    <p class="mods-section-title">🥗 Estilo de Preparación</p>
+                    <div class="mods-chips">
+                        <label class="mod-chip"><input type="checkbox" value="Con todo"> Con todo</label>
+                        <label class="mod-chip"><input type="checkbox" value="Sencilla"> Sencilla</label>
+                        <label class="mod-chip"><input type="checkbox" value="Mediana"> Mediana</label>
+                        <label class="mod-chip"><input type="checkbox" value="Grande"> Grande</label>
+                    </div>
+                </div>
+
                 <!-- Extras y preferencias -->
                 <div class="mods-section">
                     <p class="mods-section-title">➕ Extras y preferencias</p>
@@ -261,7 +272,27 @@
             </div>
         </div>
     </div>
+    <!-- Modal de Rastreo de Orden -->
+    <div class="tracker-overlay" id="tracker-modal">
+        <div class="tracker-container">
+            <h3 id="tracker-title">Procesando tu pedido...</h3>
+            <p id="tracker-status-text">Enviando orden por WhatsApp</p>
+            
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="tracker-progress"></div>
+            </div>
+            
+            <ul class="tracker-steps" id="tracker-steps">
+                <li class="active">📲 Orden enviada</li>
+                <li>💳 Confirmando pago</li>
+                <li>🧑‍🍳 Preparando orden</li>
+                <li>✅ ¡Listo! Gracias por tu compra</li>
+            </ul>
+            
+            <button class="close-tracker-btn" id="close-tracker" style="display: none;">Cerrar</button>
+        </div>
+    </div>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>
