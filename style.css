@@ -1,4 +1,29 @@
 /* style.css */
+
+/* ─── Fixes iOS / Android ───────────────────────────────── */
+
+/* Previene el highlight azul/gris al tocar en móvil */
+* {
+    -webkit-tap-highlight-color: transparent;
+    /* Previene zoom de texto en landscape (iOS Safari) */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Scroll suave en toda la página */
+html {
+    scroll-behavior: smooth;
+    /* Safe area para iPhone X+ (notch/home bar) */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Scroll touch nativo en iOS */
+body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+}
 :root {
     --primary: #FF5A00; /* Naranja apetitoso */
     --primary-dark: #E04D00;
@@ -392,12 +417,60 @@ body {
     margin-top: 2rem;
 }
 
+/* ─── Responsive móvil ─────────────────────────────────── */
 @media (max-width: 600px) {
     .menu {
         margin-top: -2rem;
+        padding: 0 0.75rem;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
     }
+
     .cart-container {
         max-width: 100%;
+        /* Respetar home bar de iPhone en el carrito */
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .cart-footer {
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    }
+
+    /* Header — respetar notch de iPhone */
+    .header {
+        padding-top: calc(1rem + env(safe-area-inset-top));
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    /* Hero más compacto en móvil */
+    .hero {
+        padding: 3rem 1rem;
+    }
+    .hero h1 {
+        font-size: 1.85rem;
+    }
+
+    /* Botones más fáciles de tocar (mínimo 44px — Apple guideline) */
+    .add-to-cart,
+    .whatsapp-btn,
+    .location-btn {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    .loc-tab {
+        min-height: 44px;
+    }
+
+    .mods-confirm-btn,
+    .mods-skip-btn {
+        min-height: 48px;
+    }
+
+    /* Tarjeta de tienda más compacta */
+    .store-map-iframe {
+        height: 110px;
     }
 }
 

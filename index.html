@@ -2,9 +2,33 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- VIEWPORT — Correcto para iOS y Android -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Tortas Tortuga - San Antonio</title>
-    <meta name="description" content="Las mejores tortas de San Antonio, Texas. ¡Pide ahora!">
+    <meta name="description" content="Las mejores tortas de San Antonio, Texas. ¡Pide ahora por WhatsApp!">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Theme color (barra del navegador en Android) -->
+    <meta name="theme-color" content="#FF5A00">
+    <meta name="msapplication-TileColor" content="#FF5A00">
+
+    <!-- iOS / Safari meta tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Tortas Tortuga">
+    <link rel="apple-touch-icon" href="icon-apple.png">
+
+    <!-- Prevenir zoom no deseado en iOS al hacer focus en inputs -->
+    <meta name="format-detection" content="telephone=yes">
+
+    <!-- Open Graph (compartir en redes) -->
+    <meta property="og:title" content="Tortas Tortuga — San Antonio">
+    <meta property="og:description" content="Las mejores tortas de San Antonio. ¡Pide ahora!">
+    <meta property="og:image" content="icon-512.png">
+    <meta property="og:type" content="website">
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -325,6 +349,17 @@
         </div>
     </div>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
+
+    <!-- Registro del Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('🐢 SW registrado:', reg.scope))
+                    .catch(err => console.warn('SW error:', err));
+            });
+        }
+    </script>
 </body>
 </html>
