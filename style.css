@@ -791,6 +791,33 @@ body {
     line-height: 1.4;
 }
 
+/* ─── Chips de Michelada ─────────────────────────────────── */
+.chip-beer {
+    border-color: rgba(234, 179, 8, 0.35) !important;
+    background: rgba(234, 179, 8, 0.06) !important;
+}
+
+.chip-beer:hover:not(.selected) {
+    background: rgba(234, 179, 8, 0.12) !important;
+    color: #eab308 !important;
+}
+
+.chip-beer.selected {
+    background: rgba(234, 179, 8, 0.2) !important;
+    border-color: #eab308 !important;
+    color: #eab308 !important;
+}
+
+.chip-price {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #eab308;
+    margin-left: 0.3rem;
+    background: rgba(234, 179, 8, 0.15);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+}
+
 /* ─── Formulario mejorado ─────────────────────────────────── */
 .form-section-label {
     font-size: 0.72rem;
