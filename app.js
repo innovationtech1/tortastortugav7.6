@@ -271,6 +271,7 @@ function limpiarCarrito() {
     if (confirm(`¿Vaciar el carrito? Se quitarán los ${cart.length} artículo(s).`)) {
         cart = [];
         updateCart();
+        location.reload();
     }
 }
 
