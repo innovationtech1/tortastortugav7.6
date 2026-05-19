@@ -59,8 +59,10 @@
         .order-items { max-width: 280px; color: var(--muted); font-size: 0.82rem; line-height: 1.5; }
         .order-total { font-weight: 700; color: var(--green); white-space: nowrap; }
 
-        /* Badges */
+        /* Badges & Buttons */
         .status-select { padding: 0.3rem 0.6rem; border-radius: 20px; border: none; font-family: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer; outline: none; transition: 0.2s; }
+        .delete-btn { background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.2); border-radius: 8px; padding: 0.35rem; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .delete-btn:hover { background: rgba(244,67,54,0.25); transform: scale(1.05); }
         .status-nuevo       { background: rgba(37,211,102,0.15); color: #25D366; }
         .status-prep        { background: rgba(255,214,0,0.15);  color: #FFD600; }
         .status-listo       { background: rgba(33,150,243,0.15); color: #2196F3; }
@@ -151,7 +153,7 @@
 
 <script type="module">
     import { db } from './firebase-config.js';
-    import { collection, query, orderBy, onSnapshot, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
     const ADMIN_PASSWORD = 'tortuga2025'; // Clave de acceso
     let pedidosDB = [];
@@ -255,13 +257,16 @@
                     <span class="pay-badge">${(p.metodoPago || '').toUpperCase()}</span>
                 </td>
                 <td>
-                    <select class="status-select ${estadoCls}" data-id="${p.id}">
-                        <option ${p.estado?.includes('Nuevo') ? 'selected' : ''}>Nuevo 🆕</option>
-                        <option ${p.estado?.includes('preparación') ? 'selected' : ''}>En preparación 🧑‍🍳</option>
-                        <option ${p.estado?.includes('Listo') ? 'selected' : ''}>Listo ✅</option>
-                        <option ${p.estado?.includes('Entregado') ? 'selected' : ''}>Entregado 🎉</option>
-                        <option ${p.estado?.includes('Cancelado') ? 'selected' : ''}>Cancelado ❌</option>
-                    </select>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <select class="status-select ${estadoCls}" data-id="${p.id}">
+                            <option ${p.estado?.includes('Nuevo') ? 'selected' : ''}>Nuevo 🆕</option>
+                            <option ${p.estado?.includes('preparación') ? 'selected' : ''}>En preparación 🧑‍🍳</option>
+                            <option ${p.estado?.includes('Listo') ? 'selected' : ''}>Listo ✅</option>
+                            <option ${p.estado?.includes('Entregado') ? 'selected' : ''}>Entregado 🎉</option>
+                            <option ${p.estado?.includes('Cancelado') ? 'selected' : ''}>Cancelado ❌</option>
+                        </select>
+                        <button class="delete-btn" data-id="${p.id}" title="Eliminar permanentemente">🗑️</button>
+                    </div>
                 </td>
             </tr>`;
         }).join('');
@@ -273,10 +278,24 @@
                 const nuevoEstado = e.target.value;
                 try {
                     await updateDoc(doc(db, 'pedidos', id), { estado: nuevoEstado });
-                    // No necesitas actualizar la UI manualmente, onSnapshot lo hará automáticamente
                 } catch(error) {
                     alert('Error al actualizar estado. Revisa tu conexión.');
                     console.error(error);
+                }
+            });
+        });
+
+        // Agregar Event Listeners a los botones de eliminar
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.currentTarget.getAttribute('data-id');
+                if (confirm('⚠️ ¿Estás seguro de que deseas eliminar este pedido PERMANENTEMENTE? Esta acción no se puede deshacer.')) {
+                    try {
+                        await deleteDoc(doc(db, 'pedidos', id));
+                    } catch(error) {
+                        alert('Error al eliminar el pedido.');
+                        console.error(error);
+                    }
                 }
             });
         });
