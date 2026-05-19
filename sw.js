@@ -3,6 +3,7 @@ const CACHE_NAME = 'tortuga-v1';
 const ASSETS = [
     '/',
     '/index.html',
+    '/admin.html',
     '/style.css',
     '/app.js',
     '/manifest.json',
