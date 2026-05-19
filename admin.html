@@ -86,7 +86,8 @@
         <h2>Panel Admin Vivo</h2>
         <p>Tortas Tortuga — Pedidos en Tiempo Real</p>
         <input type="password" id="password-input" class="login-input" placeholder="Contraseña">
-        <button class="login-btn" id="btn-login">Entrar al Panel</button>
+        <button class="login-btn" id="btn-login" style="margin-bottom: 0.8rem;">Entrar al Panel</button>
+        <button class="filter-btn" onclick="window.location.href='index.html'" style="width: 100%;">🏠 Volver a la Tienda</button>
         <p class="login-error" id="login-error">❌ Contraseña incorrecta</p>
     </div>
 </div>
@@ -95,7 +96,8 @@
 <div id="dashboard">
     <div class="top-bar">
         <div class="top-bar-logo">🐢 <span>Tortas Tortuga</span></div>
-        <div class="top-bar-actions">
+        <div class="top-bar-actions" style="display:flex; align-items:center; gap:1rem;">
+            <button class="filter-btn" onclick="window.location.href='index.html'" style="border-color:var(--border);">🏠 Tienda</button>
             <div class="live-badge"><div class="live-dot"></div> En vivo</div>
         </div>
     </div>
