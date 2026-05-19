@@ -406,11 +406,6 @@ document.getElementById('search-address-btn')?.addEventListener('click', async (
 });
 
 // ─── BUSCADOR DE TICKETS (RASTREADOR) ─────────────────────────
-document.getElementById('ticket-search-btn')?.addEventListener('click', window.buscarTicket);
-document.getElementById('ticket-search-input')?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') window.buscarTicket();
-});
-
 window.buscarTicket = async function() {
     const input = document.getElementById('ticket-search-input');
     const resultDiv = document.getElementById('ticket-search-result');
@@ -427,9 +422,6 @@ window.buscarTicket = async function() {
     resultDiv.innerHTML = '⏳ Buscando orden...';
 
     try {
-        // Consultamos todos los pedidos del usuario actual (o todos si es admin, pero esto es frontend)
-        // Para buscar por ticket (que son los ultimos 4 caracteres), traemos los ultimos pedidos.
-        // Dado que Firestore no soporta endsWith, tenemos que traerlos y filtrar localmente.
         const q = query(collection(db, 'pedidos'), orderBy('creado', 'desc'));
         const snapshot = await getDocs(q);
         
@@ -461,3 +453,8 @@ window.buscarTicket = async function() {
         resultDiv.innerHTML = '⚠️ Hubo un error al buscar el ticket. Revisa tu conexión.';
     }
 };
+
+document.getElementById('ticket-search-btn')?.addEventListener('click', window.buscarTicket);
+document.getElementById('ticket-search-input')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') window.buscarTicket();
+});
