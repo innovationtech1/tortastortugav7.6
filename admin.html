@@ -146,6 +146,11 @@
         <button class="filter-btn" data-filter="Entregado">🎉 Entregados</button>
     </div>
 
+    <!-- BUSCADOR INTELIGENTE POS -->
+    <div style="padding: 0 2rem; margin-bottom: 1.5rem;">
+        <input type="text" id="admin-search" placeholder="🔍 Buscar orden por Ticket (ej. A4B2), Nombre o Teléfono..." style="width:100%; padding: 1rem 1.2rem; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,0,0,0.4); color: white; font-size: 1.1rem; font-family: inherit;">
+    </div>
+
     <div class="table-wrapper">
         <table>
             <thead>
@@ -222,21 +227,33 @@
 
     // ─── ACTUALIZAR UI ──────────────────────────────────────
     function actualizarUI() {
+        const searchText = (document.getElementById('admin-search')?.value || '').toLowerCase();
+        
         // Estadísticas
         document.getElementById('stat-total').textContent = pedidosDB.length;
         document.getElementById('stat-nuevos').textContent = pedidosDB.filter(p => p.estado?.includes('Nuevo')).length;
         document.getElementById('stat-prep').textContent = pedidosDB.filter(p => p.estado?.includes('preparación')).length;
         document.getElementById('stat-entregados').textContent = pedidosDB.filter(p => p.estado?.includes('Entregado')).length;
 
-        // Filtrar y renderizar
-        const filtrados = filtroActual === 'todos' 
+        // Filtrar por estado
+        let filtrados = filtroActual === 'todos' 
             ? pedidosDB 
             : pedidosDB.filter(p => p.estado?.includes(filtroActual));
+            
+        // Filtrar por búsqueda inteligente (Ticket, Nombre, Teléfono)
+        if (searchText) {
+            filtrados = filtrados.filter(p => {
+                const ticket = p.id.slice(-4).toLowerCase();
+                const nombre = (p.nombre || '').toLowerCase();
+                const tel = (p.telefono || '').toLowerCase();
+                return ticket.includes(searchText) || nombre.includes(searchText) || tel.includes(searchText);
+            });
+        }
         
         renderTabla(filtrados);
     }
 
-    // ─── FILTROS ────────────────────────────────────────────
+    // ─── FILTROS Y BÚSQUEDA ─────────────────────────────────
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -245,6 +262,8 @@
             actualizarUI();
         });
     });
+    
+    document.getElementById('admin-search')?.addEventListener('input', actualizarUI);
 
     // ─── RENDER TABLA ───────────────────────────────────────
     function renderTabla(pedidos) {
