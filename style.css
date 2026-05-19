@@ -1051,3 +1051,162 @@ body {
     flex-shrink: 0;
     cursor: pointer;
 }
+
+/* ─── MENU GRID / CARDS ─────────────────────────────────── */
+.menu-section { padding: 0 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+.section-title {
+    font-size: 1.4rem; font-weight: 800;
+    color: var(--primary); margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+.drinks-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+
+.product-card {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+.card-img-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #1a1a1a; }
+.card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s; }
+.product-card:hover .card-img { transform: scale(1.05); }
+
+.card-badge {
+    position: absolute; top: 0.6rem; left: 0.6rem;
+    padding: 0.25rem 0.65rem; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em;
+}
+.badge-bestseller { background: #FF5A00; color: white; }
+.badge-special    { background: #1a6bff; color: white; }
+.badge-meat       { background: #8B0000; color: white; }
+.badge-veg        { background: #25a244; color: white; }
+.badge-kids       { background: #ff9944; color: white; }
+
+.card-body { padding: 1rem 1.1rem 1.25rem; display: flex; flex-direction: column; flex: 1; }
+.product-title { font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.4rem; }
+.product-desc  { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; margin-bottom: 0.5rem; flex: 1; }
+.product-includes { font-size: 0.75rem; color: #25D366; font-weight: 700; margin-bottom: 0.75rem; }
+
+.size-selector {
+    width: 100%; padding: 0.6rem 0.8rem; margin-bottom: 0.75rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 10px; color: var(--text-main);
+    font-family: inherit; font-size: 0.85rem; cursor: pointer; outline: none;
+}
+.size-selector:focus { border-color: var(--primary); }
+
+.drink-card { max-width: 300px; }
+.drink-price { font-size: 1.5rem; font-weight: 800; color: #eab308; margin-bottom: 0.6rem; }
+
+/* ─── BOTÓN PAGAR AHORA ─────────────────────────────────── */
+.pay-now-btn {
+    width: 100%; padding: 0.85rem; margin-top: 0.6rem;
+    background: linear-gradient(135deg, #1a6bff, #0045cc);
+    color: white; border: none; border-radius: 14px;
+    font-family: inherit; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: filter 0.2s, transform 0.1s;
+    box-shadow: 0 6px 20px rgba(26,107,255,0.35);
+}
+.pay-now-btn:hover  { filter: brightness(1.1); }
+.pay-now-btn:active { transform: scale(0.98); }
+
+/* ─── BOTÓN CERRAR SESIÓN ───────────────────────────────── */
+.signout-btn {
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-muted); border-radius: 8px;
+    padding: 0.4rem 0.7rem; cursor: pointer; font-size: 1rem;
+    transition: all 0.2s; margin-right: 0.5rem;
+}
+.signout-btn:hover { background: rgba(255,60,60,0.15); color: #ff6060; }
+
+/* ─── MODAL POS ─────────────────────────────────────────── */
+.pos-overlay {
+    position: fixed; inset: 0; z-index: 3000;
+    background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.pos-overlay.active { opacity: 1; pointer-events: all; }
+
+.pos-container {
+    background: #1a1a1a; border-radius: 24px 24px 0 0;
+    width: 100%; max-width: 480px;
+    padding: 1.5rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom));
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(60px); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.pos-overlay.active .pos-container { transform: translateY(0); }
+
+.pos-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+.pos-header h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 0.25rem; }
+.pos-total-label { font-size: 0.85rem; color: var(--text-muted); }
+.pos-total-label strong { color: var(--primary); font-size: 1.1rem; }
+
+.pos-body { display: flex; flex-direction: column; gap: 0.65rem; }
+
+.pos-method {
+    display: flex; align-items: center; gap: 1rem;
+    width: 100%; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; cursor: pointer;
+    transition: background 0.2s, border-color 0.2s; text-align: left;
+    color: var(--text-main); font-family: inherit;
+}
+.pos-method:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+
+.pos-method-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--primary); display: flex; align-items: center;
+    justify-content: center; font-size: 1.2rem; font-weight: 900;
+    color: white; flex-shrink: 0;
+}
+.pos-method-info { flex: 1; }
+.pos-method-name { font-size: 0.95rem; font-weight: 700; }
+.pos-method-sub  { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.1rem; }
+.pos-method-arrow { font-size: 1.4rem; color: var(--text-muted); }
+
+/* Info panel */
+.pos-info-panel { padding-top: 1rem; }
+.back-pos-btn {
+    background: none; border: none; color: var(--primary);
+    font-family: inherit; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; padding: 0; margin-bottom: 1.25rem; display: block;
+}
+.pay-info-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 1.5rem; text-align: center; margin-bottom: 1.25rem;
+}
+.pay-info-icon  { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.pay-info-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 0.75rem; }
+.pay-info-text  { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+.pay-handle     { font-size: 1.25rem; color: var(--primary); display: block; margin: 0.5rem 0; }
+
+.btn-confirmar-pago {
+    width: 100%; padding: 0.95rem;
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    color: white; border: none; border-radius: 14px;
+    font-family: inherit; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: filter 0.2s;
+    box-shadow: 0 6px 20px rgba(37,211,102,0.3);
+}
+.btn-confirmar-pago:hover { filter: brightness(1.08); }
+
+/* ─── RESPONSIVE TARJETAS ───────────────────────────────── */
+@media (max-width: 500px) {
+    .menu-grid { grid-template-columns: 1fr; }
+    .drinks-grid { grid-template-columns: 1fr 1fr; }
+    .drink-card { max-width: 100%; }
+}
+

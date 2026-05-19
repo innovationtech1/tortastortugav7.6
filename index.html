@@ -2,196 +2,236 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- VIEWPORT — Correcto para iOS y Android -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Tortas Tortuga - San Antonio</title>
-    <meta name="description" content="Las mejores tortas de San Antonio, Texas. ¡Pide ahora por WhatsApp!">
-
-    <!-- PWA Manifest -->
+    <meta name="description" content="Las mejores tortas de San Antonio, Texas. ¡Pide ahora!">
     <link rel="manifest" href="manifest.json">
-
-    <!-- Theme color (barra del navegador en Android) -->
     <meta name="theme-color" content="#FF5A00">
-    <meta name="msapplication-TileColor" content="#FF5A00">
-
-    <!-- iOS / Safari meta tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Tortas Tortuga">
     <link rel="apple-touch-icon" href="icon-apple.png">
-
-    <!-- Prevenir zoom no deseado en iOS al hacer focus en inputs -->
-    <meta name="format-detection" content="telephone=yes">
-
-    <!-- Open Graph (compartir en redes) -->
-    <meta property="og:title" content="Tortas Tortuga — San Antonio">
-    <meta property="og:description" content="Las mejores tortas de San Antonio. ¡Pide ahora!">
-    <meta property="og:image" content="icon-512.png">
-    <meta property="og:type" content="website">
-
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
-    <!-- Guard de Autenticación Firebase -->
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
         import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = 'auth.html';
-                return;
-            }
-            // Autocompletar nombre y teléfono desde el perfil
+            if (!user) { window.location.href = 'auth.html'; return; }
+            window._firebaseUser = user;
             try {
-                const idxSnap = await getDoc(doc(db, 'uid_index', user.uid));
-                if (idxSnap.exists()) {
-                    const perfilSnap = await getDoc(doc(db, 'usuarios', idxSnap.data().id));
-                    if (perfilSnap.exists()) {
-                        const p = perfilSnap.data();
-                        const nameInput = document.getElementById('customer-name');
-                        const phoneInput = document.getElementById('customer-phone');
-                        if (nameInput && !nameInput.value) nameInput.value = p.nombre || '';
-                        if (phoneInput && !phoneInput.value) phoneInput.value = p.telefono || '';
+                const idx = await getDoc(doc(db, 'uid_index', user.uid));
+                if (idx.exists()) {
+                    const p = (await getDoc(doc(db, 'usuarios', idx.data().id))).data();
+                    if (p) {
+                        const n = document.getElementById('customer-name');
+                        const t = document.getElementById('customer-phone');
+                        if (n && !n.value) n.value = p.nombre || '';
+                        if (t && !t.value) t.value = p.telefono || '';
+                        window._userProfile = p;
                     }
                 }
-            } catch(e) { /* no crítico */ }
+            } catch(e) {}
         });
-
-        // Cerrar sesión
         window.cerrarSesion = async () => {
             const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-            await signOut(auth);
-            window.location.href = 'auth.html';
+            await signOut(auth); window.location.href = 'auth.html';
         };
     </script>
 </head>
 <body>
-    <header class="header">
-        <div class="logo">🐢 Tortas Tortuga</div>
-        <div class="header-actions">
-            <button class="clear-cart-btn" id="clear-cart-btn" onclick="limpiarCarrito()" style="display:none;" title="Vaciar carrito">
-                🗑️ Vaciar
-            </button>
-            <div class="cart-icon" id="cart-icon">
-                🛒 <span id="cart-count">0</span>
+<header class="header">
+    <div class="logo">🐢 Tortas Tortuga</div>
+    <div class="header-actions">
+        <button class="clear-cart-btn" id="clear-cart-btn" onclick="limpiarCarrito()" style="display:none;">🗑️ Vaciar</button>
+        <button class="signout-btn" onclick="cerrarSesion()" title="Cerrar sesión">⎋</button>
+        <div class="cart-icon" id="cart-icon">🛒 <span id="cart-count">0</span></div>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <h1>Las Verdaderas Tortas de Texas 🐢</h1>
+        <p>Todos los combos incluyen Chips y Refresco · Lun–Sáb 10am–6pm</p>
+        <div class="hero-phone">📞 210-TORTA-10 &nbsp;|&nbsp; 210-86782-10</div>
+    </section>
+
+    <!-- MENÚ TORTAS -->
+    <section class="menu-section">
+        <h2 class="section-title">🥖 Nuestras Tortas</h2>
+        <div class="menu-grid" id="menu-container">
+
+            <!-- 1. Original -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-original.png" alt="Original Torta Tortuga" class="card-img" loading="lazy">
+                    <div class="card-badge badge-bestseller">⭐ Best Seller</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">1. Original Torta Tortuga</h3>
+                    <p class="product-desc">1 Whole Avocado · Ham, Pork Head Cheese &amp; Turkey · Tomato, Onions, Mayo, Queso Fresco</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-original">
+                        <option value="14">C — Single Meat · 3 Slices — $14</option>
+                        <option value="16">B — Double Meat · 6 Slices — $16</option>
+                        <option value="18">A — Triple Meat · 9 Slices — $18</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('original','1. Original Torta Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 2. Turkey -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-original.png" alt="Turkey Tortuga" class="card-img" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">2. Turkey or Ham Tortuga</h3>
+                    <p class="product-desc">1 Whole BIG Avocado · Turkey, Ham or Mix Meat · Tomato, Onions, Mayo, Queso Fresco</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-turkey">
+                        <option value="14">C — Single · 3 Slices — $14</option>
+                        <option value="16">B — Double · 6 Slices — $16</option>
+                        <option value="18">A — Triple · 9 Slices — $18</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('turkey','2. Turkey or Ham Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 3. Pork -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-original.png" alt="Pork Tortuga" class="card-img" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">3. Pork Head Chz Tortuga</h3>
+                    <p class="product-desc">1 Whole Avocado · Pork Head Cheese · Meat Slices · Mayo, Queso Fresco</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-pork">
+                        <option value="14">C — Single · 4 Slices — $14</option>
+                        <option value="16">B — Double · 8 Slices — $16</option>
+                        <option value="18">A — Triple · 12 Slices — $18</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('pork','3. Pork Head Chz Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 4. Shrimp -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-shrimp.png" alt="Shrimp Tortuga" class="card-img" loading="lazy">
+                    <div class="card-badge badge-special">🍤 Especial</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">4. Shrimp Tortuga</h3>
+                    <p class="product-desc">1 Whole BIG Avocado · Shrimp · Ham, Turkey &amp; Pork Head Cheese · Mayo, Queso Fresco</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-shrimp">
+                        <option value="17">A — Single · 3 Slices + 5 Shrimp — $17</option>
+                        <option value="20">B — Double Shrimp · 3 Slices + 10 Shrimp — $20</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('shrimp','4. Shrimp Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 5. All Meat -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-allmeat.png" alt="All Meat Tortuga" class="card-img" loading="lazy">
+                    <div class="card-badge badge-meat">🥩 All Meat</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">5. Only Meat No Veggies</h3>
+                    <p class="product-desc">3 Mix Meats: Turkey, Ham &amp; Pork Head Cheese · Mayo, Queso Fresco · Sin verduras</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-allmeat">
+                        <option value="14">C — Single · 6 Slices — $14</option>
+                        <option value="16">B — Double · 9 Slices — $16</option>
+                        <option value="18">A — Triple · 12 Slices — $18</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('allmeat','5. Only Meat No Veggies')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 6. Vegan -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-vegan.png" alt="Vegan Tortuga" class="card-img" loading="lazy">
+                    <div class="card-badge badge-veg">🌱 Vegan</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">6. Vegan Tortuga</h3>
+                    <p class="product-desc">1½ Avocado · Mayo · Tomato · Onions · Red Onions. 100% Plant Based.</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-vegan">
+                        <option value="14">Combo Single — $14</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('vegan','6. Vegan Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+            <!-- 7. Kids -->
+            <div class="product-card">
+                <div class="card-img-wrap">
+                    <img src="img/torta-kids.png" alt="Kids Tortuga" class="card-img" loading="lazy">
+                    <div class="card-badge badge-kids">👧 Kids</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">7. Kids Tortuga</h3>
+                    <p class="product-desc">Ham &amp; Mayo · Specially made for the little ones. $1 OFF Torta a la Carte.</p>
+                    <div class="product-includes">✅ Chips + Refresco incluidos</div>
+                    <select class="size-selector" id="select-kids">
+                        <option value="9">A — Single · 3 Slices — $9</option>
+                        <option value="11">B — Double · 6 Slices — $11</option>
+                        <option value="13">C — Triple · 9 Slices — $13</option>
+                    </select>
+                    <button class="add-to-cart" onclick="addToCart('kids','7. Kids Tortuga')">➕ Agregar al Pedido</button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- MICHELADAS -->
+    <section class="menu-section">
+        <h2 class="section-title">🍺 Miche Tortuga</h2>
+        <div class="menu-grid drinks-grid">
+            <div class="product-card drink-card">
+                <div class="card-img-wrap">
+                    <img src="img/michelada.png" alt="Michelada" class="card-img" loading="lazy">
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">Michelada Sencilla</h3>
+                    <p class="product-desc">Clamato juice · Fresh lime · Tajín · Salt · Pre-Mixed</p>
+                    <div class="drink-price">$10</div>
+                    <button class="add-to-cart" onclick="addDrink('Michelada Sencilla', 10)">➕ Agregar</button>
+                </div>
+            </div>
+            <div class="product-card drink-card">
+                <div class="card-img-wrap">
+                    <img src="img/michelada.png" alt="Michelada Camarones" class="card-img" loading="lazy">
+                    <div class="card-badge badge-special">🍤</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="product-title">Michelada con Camarones</h3>
+                    <p class="product-desc">Clamato · Fresh Lime · Tajín · Salt · Shrimp on Top</p>
+                    <div class="drink-price">$15</div>
+                    <button class="add-to-cart" onclick="addDrink('Michelada con Camarones', 15)">➕ Agregar</button>
+                </div>
             </div>
         </div>
-    </header>
+    </section>
+</main>
 
-    <main>
-        <section class="hero">
-            <h1>Las Verdaderas Tortas de Texas</h1>
-            <p>Todos nuestros combos incluyen Chips y Refresco de Lata.</p>
-        </section>
-
-        <section class="menu" id="menu-container">
-
-            <!-- 1. Original Torta Tortuga -->
-            <div class="product-card">
-                <h3 class="product-title">1. Original Torta Tortuga</h3>
-                <p class="product-desc">1 Whole Avocado, 3 Meats (Ham, Pork Head Cheese &amp; Turkey), Tomato, Onions, Mayo and Queso Fresco. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-original">
-                    <option value="14">C — Combo Single Meat · 3 Slices - $14</option>
-                    <option value="16">B — Combo Double Meat · 6 Slices - $16</option>
-                    <option value="18">A — Combo Triple Meat · 9 Slices - $18</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('original', '1. Original Torta Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 2. Turkey Tortuga -->
-            <div class="product-card">
-                <h3 class="product-title">2. Turkey Tortuga</h3>
-                <p class="product-desc">1 Whole Avocado, Turkey Ham, Tomato, Onions, Mayo and Queso Fresco. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-turkey">
-                    <option value="14">C — Combo Single Meat · 3 Slices - $14</option>
-                    <option value="16">B — Combo Double Meat · 6 Slices - $16</option>
-                    <option value="18">A — Combo Triple Meat · 9 Slices - $18</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('turkey', '2. Turkey Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 3. Pork Tortuga -->
-            <div class="product-card">
-                <h3 class="product-title">3. Pork Tortuga</h3>
-                <p class="product-desc">1 Whole Avocado, Pork Head Cheese, Tomato, Onions, Mayo and Queso Fresco. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-pork">
-                    <option value="14">C — Combo Single Meat · 4 Slices - $14</option>
-                    <option value="16">B — Combo Double Meat · 8 Slices - $16</option>
-                    <option value="18">A — Combo Triple Meat · 12 Slices - $18</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('pork', '3. Pork Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 4. Shrimp Tortuga -->
-            <div class="product-card">
-                <div class="product-badge badge-special">🍤 Especial</div>
-                <h3 class="product-title">4. Shrimp Tortuga</h3>
-                <p class="product-desc">1 Whole Avocado, 3 Meats with Shrimp — Turkey, Ham and Pork Head Cheese, Mayo and Cheese. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-shrimp">
-                    <option value="17">A — Combo Single · 3 Slices + 5 Shrimp - $17</option>
-                    <option value="20">B — Combo Double Shrimp · 3 Slices + 10 Shrimp - $20</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('shrimp', '4. Shrimp Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 5. All Meat Tortuga -->
-            <div class="product-card">
-                <div class="product-badge badge-meat">🥩 All Meat</div>
-                <h3 class="product-title">5. All Meat Tortuga</h3>
-                <p class="product-desc">3 Meats — Turkey, Ham and Pork Head Cheese, Mayo and Cheese. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-allmeat">
-                    <option value="14">C — Combo Single Meat · 6 Slices - $14</option>
-                    <option value="16">B — Combo Double Meat · 9 Slices - $16</option>
-                    <option value="18">A — Combo Triple Meat · 12 Slices - $18</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('allmeat', '5. All Meat Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 6. Vegan Tortuga -->
-            <div class="product-card">
-                <div class="product-badge badge-veg">🌱 Vegan</div>
-                <h3 class="product-title">6. Vegan Tortuga</h3>
-                <p class="product-desc">1½ Avocado, Mayo, Tomato and Onions. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-vegan">
-                    <option value="14">Combo Single - $14</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('vegan', '6. Vegan Tortuga')">Agregar al Pedido</button>
-            </div>
-
-            <!-- 7. Kids Tortuga -->
-            <div class="product-card">
-                <div class="product-badge badge-breakfast">👧 Kids</div>
-                <h3 class="product-title">7. Kids Tortuga</h3>
-                <p class="product-desc">Ham and Mayo. Specially made for the little ones. <em>$1 OFF for Torta a La Carte.</em></p>
-                <div class="product-includes">✅ Incluye Chips y Refresco</div>
-                <select class="size-selector" id="select-kids">
-                    <option value="9">A — Combo Single Meat · 3 Slices - $9</option>
-                    <option value="11">B — Combo Double Meat · 6 Slices - $11</option>
-                    <option value="13">C — Combo Triple Meat · 9 Slices - $13</option>
-                </select>
-                <button class="add-to-cart" onclick="addToCart('kids', '7. Kids Tortuga')">Agregar al Pedido</button>
-            </div>
-
-        </section>
-
-    <!-- Modal Carrito -->
-    <div class="modal-overlay" id="cart-modal">
-        <div class="cart-container">
-            <div class="cart-header">
-                <h3>Tu Pedido</h3>
-                <button id="close-cart" class="close-btn">×</button>
-            </div>
-            <div class="cart-body">
+<!-- MODAL CARRITO -->
+<div class="modal-overlay" id="cart-modal">
+    <div class="cart-container">
+        <div class="cart-header">
+            <h3>Tu Pedido 🛒</h3>
+            <button id="close-cart" class="close-btn">×</button>
+        </div>
+        <div class="cart-body">
             <div class="cart-items" id="cart-items">
-                <!-- Items del carrito -->
                 <p class="empty-cart">Tu carrito está vacío 🥺</p>
             </div>
             <div class="cart-footer">
@@ -200,45 +240,27 @@
                     <span id="cart-total">$0.00</span>
                 </div>
                 <div class="checkout-form">
-
-                    <!-- Datos del cliente -->
                     <div class="form-section-label">👤 Datos del Cliente</div>
                     <input type="text" id="customer-name" class="form-input" placeholder="Nombre completo" required>
-
-                    <!-- Teléfono OBLIGATORIO -->
                     <div class="phone-field-wrap">
                         <span class="phone-flag">📱</span>
-                        <input type="tel" id="customer-phone" class="form-input phone-input"
-                            placeholder="Teléfono · OBLIGATORIO"
-                            inputmode="numeric"
-                            required>
-                        <button type="button" id="locate-by-phone-btn" class="locate-phone-btn" title="Usar teléfono para GPS">
-                            🛰️
-                        </button>
+                        <input type="tel" id="customer-phone" class="form-input phone-input" placeholder="Teléfono · OBLIGATORIO" inputmode="numeric" required>
+                        <button type="button" id="locate-by-phone-btn" class="locate-phone-btn" title="GPS">🛰️</button>
                     </div>
-                    <p class="phone-hint" id="phone-hint">⚠️ Tu número de teléfono es requerido para identificar tu pedido.</p>
-
-                    <!-- Excepción: sin teléfono / cliente en tienda -->
+                    <p class="phone-hint" id="phone-hint">⚠️ Requerido para identificar tu pedido.</p>
                     <label class="no-phone-check" id="no-phone-label">
                         <input type="checkbox" id="no-phone-checkbox">
-                        <span>🏪 Estoy en la tienda / no tengo teléfono</span>
+                        <span>🏪 Estoy en la tienda / sin teléfono</span>
                     </label>
 
-                    <!-- Tipo de orden -->
                     <div class="form-section-label" style="margin-top:1rem;">🚗 Tipo de Entrega</div>
                     <div class="delivery-options">
-                        <label class="delivery-label">
-                            <input type="radio" name="order-type" value="pickup" checked>
-                            <span>🏪 Recoger en Tienda</span>
-                        </label>
-                        <label class="delivery-label">
-                            <input type="radio" name="order-type" value="delivery">
-                            <span>🛵 Entrega a Domicilio</span>
-                        </label>
+                        <label class="delivery-label"><input type="radio" name="order-type" value="pickup" checked><span>🏪 Recoger</span></label>
+                        <label class="delivery-label"><input type="radio" name="order-type" value="delivery"><span>🛵 Domicilio</span></label>
                     </div>
 
-                    <!-- Ubicación de la TIENDA (siempre visible) -->
-                    <div class="store-location-card" id="store-location-card">
+                    <!-- Ubicación tienda -->
+                    <div class="store-location-card">
                         <div class="store-loc-header">
                             <span class="store-loc-icon">🐢</span>
                             <div>
@@ -247,169 +269,175 @@
                             </div>
                             <a href="https://maps.google.com/?q=29.4241,-98.4936" target="_blank" class="store-map-btn">Ver mapa ↗</a>
                         </div>
-                        <iframe
-                            src="https://www.openstreetmap.org/export/embed.html?bbox=-98.5086,29.4091,-98.4786,29.4391&amp;layer=mapnik&amp;marker=29.4241,-98.4936"
-                            title="Ubicación de Tortas Tortuga"
-                            class="store-map-iframe"
-                            loading="lazy"
-                        ></iframe>
+                        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=-98.5086,29.4091,-98.4786,29.4391&layer=mapnik&marker=29.4241,-98.4936"
+                            title="Ubicación tienda" class="store-map-iframe" loading="lazy"></iframe>
                     </div>
 
-                    <!-- Sección ubicación del CLIENTE -->
-                    <div id="location-section" style="display: none; margin-bottom: 1rem;">
-                        <div class="form-section-label">📍 Tu Ubicación (Entrega)</div>
-
-                        <!-- Tabs -->
+                    <!-- GPS cliente -->
+                    <div id="location-section" style="display:none; margin-bottom:1rem;">
+                        <div class="form-section-label">📍 Tu Ubicación</div>
                         <div class="location-tabs">
-                            <button class="loc-tab active" id="tab-gps" type="button">🛰️ GPS Automático</button>
-                            <button class="loc-tab" id="tab-address" type="button">🏠 Mi Dirección</button>
+                            <button class="loc-tab active" id="tab-gps" type="button">🛰️ GPS</button>
+                            <button class="loc-tab" id="tab-address" type="button">🏠 Dirección</button>
                         </div>
-
-                        <!-- Panel GPS -->
                         <div id="panel-gps" class="loc-panel">
-                            <button type="button" id="get-location-btn" class="location-btn">📍 Obtener mi ubicación actual</button>
-                            <p class="live-location-hint">💡 Al recibir tu pedido por WhatsApp, comparte tu <strong>ubicación en vivo</strong> para que el repartidor te rastree en tiempo real.</p>
+                            <button type="button" id="get-location-btn" class="location-btn">📍 Obtener ubicación</button>
+                            <p class="live-location-hint">💡 Comparte tu <strong>ubicación en vivo</strong> por WhatsApp al repartidor.</p>
                             <div id="location-status"></div>
                         </div>
-
-                        <!-- Panel Dirección Manual -->
                         <div id="panel-address" class="loc-panel" style="display:none;">
-                            <input type="text" id="addr-street" class="addr-input" placeholder="🏠 Calle y número  ·  Ej: 1234 Flores St">
-                            <input type="text" id="addr-apt" class="addr-input" placeholder="Apt / Suite / Unidad (opcional)">
+                            <input type="text" id="addr-street" class="addr-input" placeholder="🏠 Calle y número">
+                            <input type="text" id="addr-apt" class="addr-input" placeholder="Apt / Suite (opcional)">
                             <div class="addr-row">
                                 <input type="text" id="addr-city" class="addr-input" placeholder="Ciudad" value="San Antonio">
-                                <input type="text" id="addr-zip" class="addr-input addr-zip" placeholder="ZIP Code">
+                                <input type="text" id="addr-zip" class="addr-input addr-zip" placeholder="ZIP">
                             </div>
-                            <button type="button" id="search-address-btn" class="location-btn">🔍 Buscar mi Dirección</button>
+                            <button type="button" id="search-address-btn" class="location-btn">🔍 Buscar Dirección</button>
                             <div id="address-status"></div>
                         </div>
                     </div>
 
-                    <div class="wait-time-estimate" id="wait-time-display">
-                        ⏱️ Tiempo estimado: <strong>20 minutos</strong>
-                    </div>
+                    <div class="wait-time-estimate" id="wait-time-display">⏱️ Tiempo estimado: <strong>20 minutos</strong></div>
 
-                    <button id="checkout-btn" class="whatsapp-btn">Pedir por WhatsApp 💬</button>
+                    <!-- BOTONES DE ACCIÓN -->
+                    <button id="checkout-btn" class="whatsapp-btn">📲 Enviar Orden por WhatsApp</button>
+                    <button id="pay-now-btn" class="pay-now-btn">💳 Pagar Ahora</button>
                 </div>
-            </div>
-            </div><!-- /cart-body -->
-        </div>
-    </div>
-    <!-- Modal Modificaciones -->
-    <div class="mods-overlay" id="mods-modal">
-        <div class="mods-container">
-            <div class="mods-header">
-                <div>
-                    <h3>Personaliza tu torta</h3>
-                    <p class="mods-subtitle" id="mods-item-name"></p>
-                </div>
-                <button class="close-btn" id="close-mods">×</button>
-            </div>
-
-            <div class="mods-body">
-                <!-- Quitar ingredientes -->
-                <div class="mods-section">
-                    <p class="mods-section-title">❌ Quitar ingrediente</p>
-                    <div class="mods-chips">
-                        <label class="mod-chip"><input type="checkbox" value="Sin cebolla"> Sin cebolla</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin tomate"> Sin tomate</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin mayonesa"> Sin mayonesa</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin lechuga"> Sin lechuga</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin aguacate"> Sin aguacate</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin crema"> Sin crema</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin queso"> Sin queso</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin jalapeños"> Sin jalapeños</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin frijoles"> Sin frijoles</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sin sal"> Sin sal</label>
-                    </div>
-                </div>
-
-                <!-- Estilo de Preparación -->
-                <div class="mods-section">
-                    <p class="mods-section-title">🥗 Estilo de Preparación</p>
-                    <div class="mods-chips">
-                        <label class="mod-chip"><input type="checkbox" value="Con todo"> Con todo</label>
-                        <label class="mod-chip"><input type="checkbox" value="Sencilla"> Sencilla</label>
-                        <label class="mod-chip"><input type="checkbox" value="Mediana"> Mediana</label>
-                        <label class="mod-chip"><input type="checkbox" value="Grande"> Grande</label>
-                    </div>
-                </div>
-
-                <!-- Extras y preferencias -->
-                <div class="mods-section">
-                    <p class="mods-section-title">➕ Extras y preferencias</p>
-                    <div class="mods-chips">
-                        <label class="mod-chip"><input type="checkbox" value="Partida a la mitad"> ✂️ Partida a la mitad</label>
-                        <label class="mod-chip"><input type="checkbox" value="Extra aguacate"> Extra aguacate</label>
-                        <label class="mod-chip"><input type="checkbox" value="Extra queso"> Extra queso</label>
-                        <label class="mod-chip"><input type="checkbox" value="Extra crema"> Extra crema</label>
-                        <label class="mod-chip"><input type="checkbox" value="Extra picante"> 🌶️ Extra picante</label>
-                        <label class="mod-chip"><input type="checkbox" value="Bien tostada"> Bien tostada</label>
-                        <label class="mod-chip"><input type="checkbox" value="Pan suave"> Pan suave</label>
-                        <label class="mod-chip"><input type="checkbox" value="Extra jalapeños"> Extra jalapeños</label>
-                    </div>
-                </div>
-
-                <!-- Micheladas -->
-                <div class="mods-section">
-                    <p class="mods-section-title">🍺 Agrega una Michelada</p>
-                    <div class="mods-chips">
-                        <label class="mod-chip chip-beer" data-price="10">
-                            <input type="checkbox" value="🍺 Michelada Sencilla +$10" data-price="10">
-                            🍺 Sencilla <span class="chip-price">+$10</span>
-                        </label>
-                        <label class="mod-chip chip-beer" data-price="15">
-                            <input type="checkbox" value="🍤 Michelada con Camarones +$15" data-price="15">
-                            🍤 Con Camarones <span class="chip-price">+$15</span>
-                        </label>
-                    </div>
-                </div>
-
-                <!-- Nota libre -->
-                <div class="mods-section">
-                    <p class="mods-section-title">📝 Nota especial</p>
-                    <textarea class="mods-notes" id="mods-notes" placeholder="Ej: calentar bien, sin sal, napkins extra..."></textarea>
-                </div>
-            </div>
-
-            <div class="mods-footer">
-                <button class="mods-skip-btn" id="mods-skip">Sin cambios</button>
-                <button class="mods-confirm-btn" id="mods-confirm">✓ Agregar al Pedido</button>
             </div>
         </div>
     </div>
-    <!-- Modal de Rastreo de Orden -->
-    <div class="tracker-overlay" id="tracker-modal">
-        <div class="tracker-container">
-            <h3 id="tracker-title">Procesando tu pedido...</h3>
-            <p id="tracker-status-text">Enviando orden por WhatsApp</p>
-            
-            <div class="progress-bar-container">
-                <div class="progress-bar" id="tracker-progress"></div>
+</div>
+
+<!-- MODAL MODIFICACIONES -->
+<div class="mods-overlay" id="mods-modal">
+    <div class="mods-container">
+        <div class="mods-header">
+            <div>
+                <h3>Personaliza tu torta</h3>
+                <p class="mods-subtitle" id="mods-item-name"></p>
             </div>
-            
-            <ul class="tracker-steps" id="tracker-steps">
-                <li class="active">📲 Orden enviada</li>
-                <li>💳 Confirmando pago</li>
-                <li>🧑‍🍳 Preparando orden</li>
-                <li>✅ ¡Listo! Gracias por tu compra</li>
-            </ul>
-            
-            <button class="close-tracker-btn" id="close-tracker" style="display: none;">Cerrar</button>
+            <button class="close-btn" id="close-mods">×</button>
+        </div>
+        <div class="mods-body">
+            <div class="mods-section">
+                <p class="mods-section-title">❌ Quitar ingrediente</p>
+                <div class="mods-chips">
+                    <label class="mod-chip"><input type="checkbox" value="Sin cebolla"> Sin cebolla</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin tomate"> Sin tomate</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin mayonesa"> Sin mayonesa</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin lechuga"> Sin lechuga</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin aguacate"> Sin aguacate</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin queso"> Sin queso</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin jalapeños"> Sin jalapeños</label>
+                    <label class="mod-chip"><input type="checkbox" value="Sin frijoles"> Sin frijoles</label>
+                </div>
+            </div>
+            <div class="mods-section">
+                <p class="mods-section-title">➕ Extras</p>
+                <div class="mods-chips">
+                    <label class="mod-chip"><input type="checkbox" value="Extra aguacate"> Extra aguacate</label>
+                    <label class="mod-chip"><input type="checkbox" value="Extra queso"> Extra queso</label>
+                    <label class="mod-chip"><input type="checkbox" value="Extra picante"> 🌶️ Extra picante</label>
+                    <label class="mod-chip"><input type="checkbox" value="Bien tostada"> Bien tostada</label>
+                    <label class="mod-chip"><input type="checkbox" value="Pan suave"> Pan suave</label>
+                    <label class="mod-chip"><input type="checkbox" value="Partida a la mitad"> ✂️ Mitad</label>
+                </div>
+            </div>
+            <div class="mods-section">
+                <p class="mods-section-title">🍺 Agregar Michelada</p>
+                <div class="mods-chips">
+                    <label class="mod-chip chip-beer" data-price="10"><input type="checkbox" value="🍺 Michelada Sencilla +$10" data-price="10"> 🍺 Sencilla <span class="chip-price">+$10</span></label>
+                    <label class="mod-chip chip-beer" data-price="15"><input type="checkbox" value="🍤 Michelada con Camarones +$15" data-price="15"> 🍤 Con Camarones <span class="chip-price">+$15</span></label>
+                </div>
+            </div>
+            <div class="mods-section">
+                <p class="mods-section-title">📝 Nota especial</p>
+                <textarea class="mods-notes" id="mods-notes" placeholder="Ej: calentar bien, sin sal..."></textarea>
+            </div>
+        </div>
+        <div class="mods-footer">
+            <button class="mods-skip-btn" id="mods-skip">Sin cambios</button>
+            <button class="mods-confirm-btn" id="mods-confirm">✓ Agregar al Pedido</button>
         </div>
     </div>
+</div>
 
-    <script src="app.js?v=5"></script>
+<!-- MODAL POS — PAGAR AHORA -->
+<div class="pos-overlay" id="pos-modal">
+    <div class="pos-container">
+        <div class="pos-header">
+            <div>
+                <h3>💳 Selecciona cómo pagar</h3>
+                <p class="pos-total-label">Total a pagar: <strong id="pos-total-amount">$0.00</strong></p>
+            </div>
+            <button class="close-btn" id="close-pos">×</button>
+        </div>
+        <div class="pos-body">
+            <!-- Stripe / Tarjeta -->
+            <button class="pos-method" id="pay-stripe" onclick="pagarConStripe()">
+                <span class="pos-method-icon">💳</span>
+                <div class="pos-method-info">
+                    <div class="pos-method-name">Tarjeta de Crédito / Débito</div>
+                    <div class="pos-method-sub">Visa · Mastercard · Apple Pay · Google Pay</div>
+                </div>
+                <span class="pos-method-arrow">›</span>
+            </button>
+            <!-- Cash App -->
+            <button class="pos-method" onclick="mostrarInfoPago('cashapp')">
+                <span class="pos-method-icon" style="background:#00D64F;">$</span>
+                <div class="pos-method-info">
+                    <div class="pos-method-name">Cash App</div>
+                    <div class="pos-method-sub">$danielgomez580</div>
+                </div>
+                <span class="pos-method-arrow">›</span>
+            </button>
+            <!-- Zelle -->
+            <button class="pos-method" onclick="mostrarInfoPago('zelle')">
+                <span class="pos-method-icon" style="background:#6D1ED4;">Z</span>
+                <div class="pos-method-info">
+                    <div class="pos-method-name">Zelle</div>
+                    <div class="pos-method-sub">210-771-3679 · Daniel Mata</div>
+                </div>
+                <span class="pos-method-arrow">›</span>
+            </button>
+            <!-- Venmo -->
+            <button class="pos-method" onclick="mostrarInfoPago('venmo')">
+                <span class="pos-method-icon" style="background:#008CFF;">V</span>
+                <div class="pos-method-info">
+                    <div class="pos-method-name">Venmo</div>
+                    <div class="pos-method-sub">@danielgomez580</div>
+                </div>
+                <span class="pos-method-arrow">›</span>
+            </button>
+            <!-- Efectivo -->
+            <button class="pos-method" onclick="mostrarInfoPago('cash')">
+                <span class="pos-method-icon" style="background:#25D366;">💵</span>
+                <div class="pos-method-info">
+                    <div class="pos-method-name">Efectivo</div>
+                    <div class="pos-method-sub">Paga al recibir tu orden</div>
+                </div>
+                <span class="pos-method-arrow">›</span>
+            </button>
+        </div>
 
-    <!-- Registro del Service Worker (PWA) -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('🐢 SW registrado:', reg.scope))
-                    .catch(err => console.warn('SW error:', err));
-            });
-        }
-    </script>
+        <!-- Panel de instrucciones de pago -->
+        <div class="pos-info-panel" id="pos-info-panel" style="display:none;">
+            <button class="back-pos-btn" onclick="ocultarInfoPago()">← Volver</button>
+            <div id="pos-info-content"></div>
+            <button class="btn-confirmar-pago" id="btn-confirmar-pago" onclick="confirmarPago()">
+                ✅ Confirmar — Ya envié el pago
+            </button>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="app.js?v=6"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+    }
+</script>
 </body>
 </html>

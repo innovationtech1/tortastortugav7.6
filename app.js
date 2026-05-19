@@ -1,553 +1,390 @@
-/* app.js */
-// Menú ahora es estático. No necesitamos menuData.
+// app.js v6 — Tortas Tortuga: Carrito + Firebase + POS
+import { db, auth } from './firebase-config.js';
+import {
+    collection, addDoc, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
+// ─── CONFIG ─────────────────────────────────────────────────────
+const WHATSAPP_NUMBER = '12108678210';
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_XXXXXXXX'; // 👈 reemplazar con tu link real
+const APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL';
+
+// ─── PRECIOS BASE por id ─────────────────────────────────────────
+const precios = {
+    original: 14, turkey: 14, pork: 14,
+    shrimp: 17, allmeat: 14, vegan: 14, kids: 9
+};
+
+// ─── ESTADO ─────────────────────────────────────────────────────
 let cart = [];
 let pendingItem = null;
-const phone_number = '2107713679';
-const APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL'; // ← Pega aqui la URL de tu Google Apps Script
-let customerLocationUrl = '';
-let customerLocationText = '';
-let customerLocationAddress = '';
-let currentLocTab = 'gps';
-let currentOrderType = 'pickup';
+let clientLocation = null;
+let currentPaymentMethod = null;
+let lastOrderId = null;
 
-// Usa OpenStreetMap gratuito — sin API Key necesaria
+// ─── DOM ─────────────────────────────────────────────────────────
+const cartModal     = document.getElementById('cart-modal');
+const cartIcon      = document.getElementById('cart-icon');
+const cartItemsEl   = document.getElementById('cart-items');
+const cartCountEl   = document.getElementById('cart-count');
+const cartTotalEl   = document.getElementById('cart-total');
+const modsModal     = document.getElementById('mods-modal');
+const posModal      = document.getElementById('pos-modal');
+const clearCartBtn  = document.getElementById('clear-cart-btn');
 
-// Elementos del DOM
-const menuContainer = document.getElementById('menu-container');
-const cartIcon = document.getElementById('cart-icon');
-const cartModal = document.getElementById('cart-modal');
-const closeCart = document.getElementById('close-cart');
-const cartItemsContainer = document.getElementById('cart-items');
-const cartCount = document.getElementById('cart-count');
-const cartTotal = document.getElementById('cart-total');
-const checkoutBtn = document.getElementById('checkout-btn');
-const customerNameInput = document.getElementById('customer-name');
-const customerPhoneInput = document.getElementById('customer-phone');
-const orderTypeRadios = document.getElementsByName('order-type');
-const locationSection = document.getElementById('location-section');
-const getLocationBtn = document.getElementById('get-location-btn');
-const locationStatus = document.getElementById('location-status');
-const waitTimeDisplay = document.getElementById('wait-time-display');
-const locateByPhoneBtn = document.getElementById('locate-by-phone-btn');
-const phoneHint = document.getElementById('phone-hint');
-const noPhoneCheckbox = document.getElementById('no-phone-checkbox');
+// ─── ABRIR CARRITO ───────────────────────────────────────────────
+cartIcon.addEventListener('click', () => cartModal.classList.add('active'));
+document.getElementById('close-cart').addEventListener('click', () => cartModal.classList.remove('active'));
+cartModal.addEventListener('click', e => { if (e.target === cartModal) cartModal.classList.remove('active'); });
 
-// Modal de modificaciones
-const modsModal = document.getElementById('mods-modal');
-const closeModsBtn = document.getElementById('close-mods');
-const modsItemName = document.getElementById('mods-item-name');
-const modsSkipBtn = document.getElementById('mods-skip');
-const modsConfirmBtn = document.getElementById('mods-confirm');
-const modsNotes = document.getElementById('mods-notes');
-
-function init() {
-    setupEventListeners();
-}
-
-// Menú estático renderizado en HTML
-
-function addToCart(productoId, productoNombre) {
-    const selectEl = document.getElementById(`select-${productoId}`);
-    const selectedOption = selectEl.options[selectEl.selectedIndex];
-
-    // Guardar item pendiente y abrir modal de modificaciones
-    pendingItem = {
-        id: Date.now(),
-        productoId: productoId,
-        nombre: productoNombre,
-        tamano: selectedOption.text.split(' - ')[0],
-        precio: parseFloat(selectedOption.value),
-        modificaciones: []
-    };
-    abrirModsModal(productoNombre);
-}
-
-// Hacerlo disponible globalmente para el onclick del HTML
-window.addToCart = addToCart;
-
-function removeFromCart(itemId) {
-    cart = cart.filter(item => item.id !== itemId);
-    updateCart();
-}
-
-window.removeFromCart = removeFromCart;
-
-function updateCart() {
-    cartCount.innerText = cart.length;
-    const clearBtn = document.getElementById('clear-cart-btn');
-    if (clearBtn) clearBtn.style.display = cart.length > 0 ? 'flex' : 'none';
-
-    if (cart.length === 0) {
-        cartItemsContainer.innerHTML = '<p class="empty-cart">Tu carrito está vacío 🥺</p>';
-        cartTotal.innerText = '$0.00';
-        return;
-    }
-
-    let html = '';
-    let total = 0;
-
-    cart.forEach(item => {
-        total += item.precio;
-        const modsHtml = item.modificaciones && item.modificaciones.length > 0
-            ? `<p class="item-mods">✏️ ${item.modificaciones.join(' · ')}</p>`
-            : '';
-        html += `
-            <div class="cart-item">
-                <div class="item-details">
-                    <h4>${item.nombre}</h4>
-                    <p>${item.tamano} (+ Chips & Refresco)</p>
-                    ${modsHtml}
-                    <p><strong>$${item.precio.toFixed(2)}</strong></p>
-                </div>
-                <button class="remove-btn" onclick="removeFromCart(${item.id})">Quitar</button>
-            </div>
-        `;
-    });
-
-    cartItemsContainer.innerHTML = html;
-    cartTotal.innerText = '$' + total.toFixed(2);
-}
-
-function setupEventListeners() {
-    cartIcon.addEventListener('click', () => {
-        cartModal.classList.add('active');
-    });
-
-    closeCart.addEventListener('click', () => {
-        cartModal.classList.remove('active');
-    });
-
-    cartModal.addEventListener('click', (e) => {
-        if (e.target === cartModal) {
-            cartModal.classList.remove('active');
-        }
-    });
-
-    orderTypeRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            currentOrderType = e.target.value;
-            if (currentOrderType === 'delivery') {
-                locationSection.style.display = 'block';
-                waitTimeDisplay.innerHTML = '⏱️ Tiempo estimado: <strong>45 minutos</strong>';
-            } else {
-                locationSection.style.display = 'none';
-                waitTimeDisplay.innerHTML = '⏱️ Tiempo estimado: <strong>20 minutos</strong>';
-            }
-        });
-    });
-
-    getLocationBtn.addEventListener('click', obtenerUbicacion);
-    document.getElementById('search-address-btn').addEventListener('click', buscarDireccion);
-    document.getElementById('tab-gps').addEventListener('click', () => cambiarTab('gps'));
-    document.getElementById('tab-address').addEventListener('click', () => cambiarTab('address'));
-    checkoutBtn.addEventListener('click', generarWhatsApp);
-
-    // ── Validación visual del teléfono en tiempo real ──
-    customerPhoneInput.addEventListener('input', () => {
-        const val = customerPhoneInput.value.trim().replace(/\D/g, '');
-        if (val.length >= 10) {
-            customerPhoneInput.classList.remove('input-error');
-            customerPhoneInput.classList.add('input-ok');
-            phoneHint.style.color = 'var(--whatsapp)';
-            phoneHint.textContent = '✅ Número válido — listo para GPS';
-        } else if (val.length > 0) {
-            customerPhoneInput.classList.remove('input-ok', 'input-error');
-            phoneHint.style.color = 'var(--text-muted)';
-            phoneHint.textContent = `📲 ${val.length}/10 dígitos...`;
-        } else {
-            customerPhoneInput.classList.remove('input-ok');
-            customerPhoneInput.classList.add('input-error');
-            phoneHint.style.color = '#ff6b6b';
-            phoneHint.textContent = '⚠️ Tu número de teléfono es requerido para identificar tu pedido.';
-        }
-    });
-
-    // ── Botón GPS desde teléfono ──
-    if (locateByPhoneBtn) {
-        locateByPhoneBtn.addEventListener('click', () => {
-            const tel = customerPhoneInput.value.trim().replace(/\D/g, '');
-            if (tel.length < 10) {
-                customerPhoneInput.classList.add('input-error');
-                phoneHint.style.color = '#ff6b6b';
-                phoneHint.textContent = '❌ Ingresa tu número de 10 dígitos antes de usar GPS.';
-                customerPhoneInput.focus();
-                return;
-            }
-            // Activar entrega a domicilio y obtener GPS
-            const deliveryRadio = document.querySelector('input[name="order-type"][value="delivery"]');
-            if (deliveryRadio) {
-                deliveryRadio.checked = true;
-                deliveryRadio.dispatchEvent(new Event('change'));
-            }
-            cambiarTab('gps');
-            obtenerUbicacion();
-        });
-    }
-
-    // ── Checkbox excepción: sin teléfono / cliente en tienda ──
-    if (noPhoneCheckbox) {
-        noPhoneCheckbox.addEventListener('change', () => {
-            const exento = noPhoneCheckbox.checked;
-            customerPhoneInput.disabled = exento;
-            customerPhoneInput.classList.remove('input-error', 'input-ok', 'phone-input');
-
-            if (exento) {
-                customerPhoneInput.value = '';
-                customerPhoneInput.placeholder = 'Sin teléfono — pedido presencial';
-                customerPhoneInput.style.opacity = '0.4';
-                locateByPhoneBtn.disabled = true;
-                locateByPhoneBtn.style.opacity = '0.3';
-                phoneHint.style.color = 'var(--text-muted)';
-                phoneHint.textContent = '🏪 Modo presencial: el teléfono no es requerido.';
-                // Forzar pickup
-                const pickupRadio = document.querySelector('input[name="order-type"][value="pickup"]');
-                if (pickupRadio) { pickupRadio.checked = true; pickupRadio.dispatchEvent(new Event('change')); }
-            } else {
-                customerPhoneInput.placeholder = 'Teléfono · OBLIGATORIO';
-                customerPhoneInput.style.opacity = '1';
-                customerPhoneInput.classList.add('phone-input');
-                locateByPhoneBtn.disabled = false;
-                locateByPhoneBtn.style.opacity = '1';
-                phoneHint.style.color = '#ff9944';
-                phoneHint.textContent = '⚠️ Tu número de teléfono es requerido para identificar tu pedido.';
-            }
-        });
-    }
-
-    // ── Modal de modificaciones ──
-    closeModsBtn.addEventListener('click', cerrarModsModal);
-    modsModal.addEventListener('click', (e) => { if (e.target === modsModal) cerrarModsModal(); });
-    modsSkipBtn.addEventListener('click', () => confirmarConMods(false));
-    modsConfirmBtn.addEventListener('click', () => confirmarConMods(true));
-
-    // Toggle visual de chips
-    document.querySelectorAll('.mod-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            chip.classList.toggle('selected');
-            const cb = chip.querySelector('input[type="checkbox"]');
-            cb.checked = !cb.checked;
-        });
-    });
-}
-
-// ─── MODIFICACIONES ──────────────────────────────────────────────────────────
-
-function abrirModsModal(nombre) {
-    modsItemName.textContent = nombre;
-    // Resetear selecciones previas
+// ─── AGREGAR TORTA ───────────────────────────────────────────────
+window.addToCart = function(id, nombre) {
+    const sel = document.getElementById(`select-${id}`);
+    const precio = parseInt(sel.value);
+    pendingItem = { id, nombre, precio, modificaciones: [] };
+    // Resetear chips
+    document.querySelectorAll('.mod-chip input').forEach(c => c.checked = false);
     document.querySelectorAll('.mod-chip').forEach(c => c.classList.remove('selected'));
-    document.querySelectorAll('.mod-chip input').forEach(cb => cb.checked = false);
-    modsNotes.value = '';
+    document.getElementById('mods-notes').value = '';
+    document.getElementById('mods-item-name').textContent = nombre;
     modsModal.classList.add('active');
-}
+};
 
-function cerrarModsModal() {
-    modsModal.classList.remove('active');
-    pendingItem = null;
-}
+// ─── AGREGAR BEBIDA DIRECTA ──────────────────────────────────────
+window.addDrink = function(nombre, precio) {
+    cart.push({ nombre, precio, modificaciones: [] });
+    updateCart();
+    cartIcon.style.transform = 'scale(1.3)';
+    setTimeout(() => cartIcon.style.transform = 'scale(1)', 250);
+    cartModal.classList.add('active');
+};
 
-function confirmarConMods(conMods) {
+// ─── MODAL MODS ──────────────────────────────────────────────────
+document.getElementById('close-mods').addEventListener('click', () => {
+    modsModal.classList.remove('active'); pendingItem = null;
+});
+modsModal.addEventListener('click', e => { if (e.target === modsModal) { modsModal.classList.remove('active'); pendingItem = null; } });
+
+document.querySelectorAll('.mod-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        chip.classList.toggle('selected');
+        chip.querySelector('input').checked = !chip.querySelector('input').checked;
+    });
+});
+
+function confirmarMods(conMods) {
     if (!pendingItem) return;
     if (conMods) {
         const mods = [];
-        document.querySelectorAll('.mod-chip input:checked').forEach(cb => mods.push(cb.value));
-        const nota = modsNotes.value.trim();
+        let extra = 0;
+        document.querySelectorAll('.mod-chip input:checked').forEach(cb => {
+            mods.push(cb.value);
+            extra += parseFloat(cb.getAttribute('data-price') || 0);
+        });
+        const nota = document.getElementById('mods-notes').value.trim();
         if (nota) mods.push(`📝 ${nota}`);
         pendingItem.modificaciones = mods;
+        pendingItem.precio += extra;
     }
     cart.push(pendingItem);
     pendingItem = null;
     modsModal.classList.remove('active');
     updateCart();
-    cartIcon.style.transform = 'scale(1.2)';
-    setTimeout(() => cartIcon.style.transform = 'scale(1)', 200);
+    cartIcon.style.transform = 'scale(1.3)';
+    setTimeout(() => cartIcon.style.transform = 'scale(1)', 250);
+    cartModal.classList.add('active');
 }
 
-// ─── LIMPIAR CARRITO ────────────────────────────────────────────────────────
+document.getElementById('mods-skip').addEventListener('click', () => confirmarMods(false));
+document.getElementById('mods-confirm').addEventListener('click', () => confirmarMods(true));
 
-function limpiarCarrito() {
-    if (cart.length === 0) return;
-    if (confirm(`¿Vaciar el carrito? Se quitarán los ${cart.length} artículo(s).`)) {
-        cart = [];
-        updateCart();
-        location.reload();
-    }
-}
-
-window.limpiarCarrito = limpiarCarrito;
-
-// ─── TABS DE UBICACIÓN ───────────────────────────────────────────────────────
-
-function cambiarTab(tab) {
-    currentLocTab = tab;
-    customerLocationUrl = '';
-    customerLocationText = '';
-    customerLocationAddress = '';
-    const tabGps  = document.getElementById('tab-gps');
-    const tabAddr = document.getElementById('tab-address');
-    const panelGps  = document.getElementById('panel-gps');
-    const panelAddr = document.getElementById('panel-address');
-    if (tab === 'gps') {
-        tabGps.classList.add('active');   tabAddr.classList.remove('active');
-        panelGps.style.display = 'block'; panelAddr.style.display = 'none';
-    } else {
-        tabAddr.classList.add('active');  tabGps.classList.remove('active');
-        panelAddr.style.display = 'block'; panelGps.style.display = 'none';
-    }
-}
-
-// ─── GEOLOCALIZACIÓN GPS ──────────────────────────────────────────────────────
-
-function obtenerUbicacion() {
-    if (!navigator.geolocation) {
-        mostrarError('Tu navegador no soporta geolocalización.');
-        return;
-    }
-    getLocationBtn.disabled = true;
-    getLocationBtn.textContent = '⏳ Obteniendo ubicación...';
-    document.getElementById('location-status').innerHTML = '';
-
-    navigator.geolocation.getCurrentPosition(
-        (pos) => mostrarUbicacion(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
-        (err) => {
-            const mensajes = {
-                1: 'Permiso denegado. Habilita la ubicación en tu navegador.',
-                2: 'No se pudo determinar la posición. Verifica tu conexión.',
-                3: 'Tiempo de espera agotado. Intenta de nuevo.'
-            };
-            mostrarError(mensajes[err.code] || 'Error al obtener ubicación.');
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-}
-
-function mostrarUbicacion(lat, lng, accuracy, etiquetaDireccion) {
-    customerLocationUrl = `https://maps.google.com/?q=${lat},${lng}`;
-    customerLocationText = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    if (etiquetaDireccion) customerLocationAddress = etiquetaDireccion;
-
-    const precisionTexto = accuracy < 50 ? 'Alta precisión' :
-                           accuracy < 200 ? 'Precisión media' : 'Precisión aproximada';
-    const delta = 0.003;
-    const bbox = `${lng - delta},${lat - delta},${lng + delta},${lat + delta}`;
-    const mapSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
-
-    const statusEl = currentLocTab === 'address'
-        ? document.getElementById('address-status')
-        : document.getElementById('location-status');
-
-    statusEl.innerHTML = `
-        <span style="color:#25D366; font-weight:600;">✅ Ubicación confirmada</span><br>
-        ${etiquetaDireccion
-            ? `<small style="color:var(--text-muted);">${etiquetaDireccion}</small><br>`
-            : `<small style="color:var(--text-muted);">${precisionTexto} (±${Math.round(accuracy)}m)</small><br>`
-        }
-        <a href="${customerLocationUrl}" target="_blank"
-           style="color:var(--primary); font-size:0.85rem; text-decoration:none; display:inline-block; margin:0.25rem 0;">
-           📍 Abrir en Google Maps ↗
-        </a>
-        <iframe
-            src="${mapSrc}"
-            title="Mapa de ubicación"
-            style="width:100%; height:160px; border-radius:10px; margin-top:0.5rem;
-                   border:1px solid rgba(255,255,255,0.15); display:block;"
-            loading="lazy" allowfullscreen
-        ></iframe>
-    `;
-
-    if (currentLocTab === 'gps') {
-        getLocationBtn.textContent = '📍 Actualizar ubicación';
-        getLocationBtn.disabled = false;
-    }
-}
-
-function mostrarError(msg) {
-    const statusEl = currentLocTab === 'address'
-        ? document.getElementById('address-status')
-        : document.getElementById('location-status');
-    statusEl.innerHTML = `<span style="color:#ff4444">${msg}</span>`;
-    getLocationBtn.textContent = '📍 Obtener mi ubicación actual';
-    getLocationBtn.disabled = false;
-}
-
-// ─── BÚSQUEDA DE DIRECCIÓN — OpenStreetMap Nominatim (gratis, sin API key) ────────
-
-async function buscarDireccion() {
-    const street = document.getElementById('addr-street').value.trim();
-    const apt    = document.getElementById('addr-apt').value.trim();
-    const city   = document.getElementById('addr-city').value.trim() || 'San Antonio';
-    const zip    = document.getElementById('addr-zip').value.trim();
-    const statusEl = document.getElementById('address-status');
-    const searchBtn = document.getElementById('search-address-btn');
-
-    if (!street) {
-        statusEl.innerHTML = '<span style="color:#ff4444">⚠️ Ingresa tu calle y número primero.</span>';
-        return;
-    }
-
-    const query = [street, apt, city, 'TX', zip, 'USA'].filter(Boolean).join(', ');
-    const apiUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=3&countrycodes=us&addressdetails=1`;
-
-    searchBtn.disabled = true;
-    searchBtn.textContent = '⏳ Buscando...';
-    statusEl.innerHTML = '';
-
-    try {
-        const res = await fetch(apiUrl, { headers: { 'Accept-Language': 'es' } });
-        const results = await res.json();
-
-        if (!results.length) {
-            statusEl.innerHTML = `<span style="color:#ff4444">❌ No encontramos esa dirección.</span><br>
-                <small style="color:var(--text-muted)">Revisa el ZIP o la ortografía.</small>`;
-        } else if (results.length === 1) {
-            seleccionarDireccion(results[0].lat, results[0].lon, results[0].display_name);
-        } else {
-            // Mostrar lista de opciones si hay más de 1 resultado
-            let optsHtml = '<p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.4rem">¿Cuál es tu dirección?</p>';
-            results.forEach(r => {
-                const name = r.display_name.replace(/"/g, '&quot;');
-                optsHtml += `<button type="button" onclick="seleccionarDireccion('${r.lat}','${r.lon}','${name}')"
-                    style="display:block;width:100%;text-align:left;background:rgba(255,255,255,0.05);
-                    border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:0.5rem 0.75rem;
-                    color:var(--text-muted);font-family:inherit;font-size:0.82rem;cursor:pointer;margin-bottom:0.4rem;">
-                    📍 ${r.display_name}
-                </button>`;
-            });
-            statusEl.innerHTML = optsHtml;
-        }
-    } catch (e) {
-        statusEl.innerHTML = '<span style="color:#ff4444">Error de conexión. Intenta de nuevo.</span>';
-    }
-
-    searchBtn.disabled = false;
-    searchBtn.textContent = '🔍 Buscar mi Dirección';
-}
-
-function seleccionarDireccion(lat, lng, displayName) {
-    mostrarUbicacion(parseFloat(lat), parseFloat(lng), 150, displayName);
-}
-window.seleccionarDireccion = seleccionarDireccion;
-
-function generarWhatsApp() {
-    const nombre = customerNameInput.value.trim();
-    const telefono = customerPhoneInput.value.trim().replace(/\D/g, '');
-
-    const esPresencial = noPhoneCheckbox && noPhoneCheckbox.checked;
-
-    // Validar nombre
-    if (!nombre) {
-        customerNameInput.classList.add('input-error');
-        customerNameInput.focus();
-        alert('Por favor, ingresa tu nombre para el pedido.');
-        return;
-    }
-
-    // Validar teléfono — OBLIGATORIO (a menos que sea pedido presencial)
-    if (!esPresencial && telefono.length < 10) {
-        customerPhoneInput.classList.add('input-error');
-        phoneHint.style.color = '#ff6b6b';
-        phoneHint.textContent = '❌ Tu número de teléfono es OBLIGATORIO (mínimo 10 dígitos).';
-        customerPhoneInput.focus();
-        return;
-    }
+// ─── ACTUALIZAR CARRITO ──────────────────────────────────────────
+function updateCart() {
+    const total = cart.reduce((s, i) => s + i.precio, 0);
+    cartCountEl.textContent = cart.length;
+    cartTotalEl.textContent = `$${total.toFixed(2)}`;
+    document.getElementById('pos-total-amount').textContent = `$${total.toFixed(2)}`;
+    clearCartBtn.style.display = cart.length ? 'inline-flex' : 'none';
 
     if (cart.length === 0) {
-        alert('Agrega al menos una torta a tu pedido.');
+        cartItemsEl.innerHTML = '<p class="empty-cart">Tu carrito está vacío 🥺</p>';
         return;
     }
-
-    if (currentOrderType === 'delivery' && !customerLocationUrl) {
-        const confirmar = confirm('Aún no has compartido tu ubicación. ¿Quieres continuar sin enviarla? (Recomendamos enviarla para que el repartidor sepa a dónde ir)');
-        if (!confirmar) return;
-    }
-
-    let total = 0;
-    let mensaje = `*NUEVO PEDIDO - TORTAS TORTUGA* 🐢%0A`;
-    mensaje += `*Cliente:* ${nombre}%0A`;
-    if (esPresencial) {
-        mensaje += `*🏪 Pedido Presencial* (sin teléfono)%0A`;
-    } else {
-        mensaje += `*📱 Teléfono:* ${telefono}%0A`;
-    }
-
-    const tipoTexto = currentOrderType === 'delivery' ? 'Entrega a Domicilio' : 'Recoger en Tienda';
-    const tiempoEspera = currentOrderType === 'delivery' ? '45 minutos' : '20 minutos';
-    mensaje += `*Tipo:* ${tipoTexto}%0A`;
-    mensaje += `*Tiempo Estimado:* ${tiempoEspera}%0A`;
-
-    if (currentOrderType === 'delivery' && customerLocationUrl) {
-        if (customerLocationAddress) {
-            mensaje += `*🏠 Dirección:* ${customerLocationAddress}%0A`;
-        }
-        mensaje += `*📍 Mapa:* ${customerLocationUrl}%0A`;
-        if (!customerLocationAddress && customerLocationText) {
-            mensaje += `*Coordenadas:* ${customerLocationText}%0A`;
-        }
-    }
-
-    mensaje += `%0A*Orden:*%0A`;
-
-    cart.forEach(item => {
-        total += item.precio;
-        mensaje += `- 1x ${item.nombre} (${item.tamano}) - $${item.precio}%0A`;
-        if (item.modificaciones && item.modificaciones.length > 0) {
-            mensaje += `  ✏️ Mods: ${item.modificaciones.join(', ')}%0A`;
-        }
-    });
-
-    mensaje += `%0A*TOTAL: $${total.toFixed(2)}*%0A`;
-    mensaje += `_Todos los combos incluyen Chips y Refresco._%0A%0A`;
-
-    if (currentOrderType === 'delivery') {
-        mensaje += `%0A⚡ *Para rastreo en tiempo real:* por favor comparte tu *Ubicación en Vivo* por WhatsApp después de enviar este mensaje 📲%0A`;
-    }
-
-    mensaje += `¿Cómo te gustaría pagar? (Zelle, Cash App o Efectivo al entregar)`;
-
-    const url = `https://wa.me/${phone_number}?text=${mensaje}`;
-
-    // ─── GUARDAR EN BASE DE DATOS (Google Sheets) ────────────────────────
-    if (APPS_SCRIPT_URL !== 'TU_APPS_SCRIPT_URL') {
-        // Construir lista de items legible
-        const itemsTexto = cart.map(item => {
-            let linea = `${item.nombre} (${item.tamano}) $${item.precio}`;
-            if (item.modificaciones && item.modificaciones.length > 0) {
-                linea += ` | Mods: ${item.modificaciones.join(', ')}`;
-            }
-            return linea;
-        }).join('\n');
-
-        const orderData = {
-            nombre:    nombre,
-            telefono:  telefono,
-            tipo:      currentOrderType === 'delivery' ? 'Entrega a Domicilio' : 'Recoger en Tienda',
-            items:     itemsTexto,
-            total:     `$${total.toFixed(2)}`,
-            ubicacion: customerLocationAddress || customerLocationUrl || 'No especificada'
-        };
-
-        guardarPedidoEnDB(orderData);
-    }
-    // ────────────────────────────────────────────────────────────────
-
-    window.open(url, '_blank');
+    cartItemsEl.innerHTML = cart.map((item, i) => `
+        <div class="cart-item">
+            <div class="item-info">
+                <div class="item-name">${item.nombre}</div>
+                ${item.modificaciones?.length ? `<div class="item-mods">${item.modificaciones.join(' · ')}</div>` : ''}
+            </div>
+            <div class="item-right">
+                <span class="item-price">$${item.precio.toFixed(2)}</span>
+                <button class="item-remove" onclick="removeItem(${i})">✕</button>
+            </div>
+        </div>
+    `).join('');
 }
 
-// ─── GUARDAR PEDIDO EN GOOGLE SHEETS ──────────────────────────────────
-async function guardarPedidoEnDB(data) {
+window.removeItem = function(i) { cart.splice(i, 1); updateCart(); };
+window.limpiarCarrito = function() {
+    if (!cart.length) return;
+    if (confirm(`¿Vaciar el carrito? (${cart.length} artículo${cart.length > 1 ? 's' : ''})`)) {
+        cart = []; updateCart(); location.reload();
+    }
+};
+
+// ─── VALIDACIONES ────────────────────────────────────────────────
+function validarFormulario() {
+    const nombre = document.getElementById('customer-name').value.trim();
+    const telefono = document.getElementById('customer-phone').value.replace(/\D/g, '');
+    const esPresencial = document.getElementById('no-phone-checkbox').checked;
+    if (!nombre) { alert('⚠️ Por favor ingresa tu nombre.'); return false; }
+    if (!esPresencial && telefono.length < 10) { alert('⚠️ El teléfono es obligatorio (10 dígitos).'); return false; }
+    if (cart.length === 0) { alert('⚠️ Agrega al menos un artículo.'); return false; }
+    return true;
+}
+
+function buildOrderData() {
+    const nombre = document.getElementById('customer-name').value.trim();
+    const telefono = document.getElementById('customer-phone').value.trim();
+    const tipo = document.querySelector('input[name="order-type"]:checked')?.value || 'pickup';
+    const total = cart.reduce((s, i) => s + i.precio, 0);
+    const items = cart.map(i => `${i.nombre} ($${i.precio})${i.modificaciones?.length ? ' [' + i.modificaciones.join(', ') + ']' : ''}`).join('\n');
+    const ubicacion = clientLocation
+        ? `📍 GPS: ${clientLocation.lat.toFixed(5)}, ${clientLocation.lon.toFixed(5)}`
+        : obtenerDireccionTexto();
+    return { nombre, telefono, tipo, items, total: `$${total.toFixed(2)}`, ubicacion, totalNum: total };
+}
+
+function obtenerDireccionTexto() {
+    const calle = document.getElementById('addr-street')?.value.trim() || '';
+    const ciudad = document.getElementById('addr-city')?.value.trim() || '';
+    const zip = document.getElementById('addr-zip')?.value.trim() || '';
+    return calle ? `${calle}, ${ciudad} ${zip}` : 'No especificada';
+}
+
+// ─── GUARDAR EN FIREBASE ─────────────────────────────────────────
+async function guardarPedidoFirebase(data, metodoPago) {
+    try {
+        const ref = await addDoc(collection(db, 'pedidos'), {
+            ...data,
+            metodoPago: metodoPago || 'pendiente',
+            estado: 'Nuevo 🆕',
+            uid: window._firebaseUser?.uid || 'anonimo',
+            creado: serverTimestamp()
+        });
+        lastOrderId = ref.id;
+        console.log('✅ Pedido guardado:', ref.id);
+        return ref.id;
+    } catch(e) {
+        console.warn('Firebase save error:', e);
+        return null;
+    }
+}
+
+// ─── GUARDAR EN GOOGLE SHEETS ────────────────────────────────────
+async function guardarEnSheets(data) {
+    if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('TU_')) return;
     try {
         await fetch(APPS_SCRIPT_URL, {
-            method:  'POST',
-            mode:    'no-cors', // Necesario para Google Apps Script
+            method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(data)
+            body: JSON.stringify(data)
         });
-        console.log('✅ Pedido guardado en base de datos');
-    } catch(e) {
-        console.warn('⚠️ No se pudo guardar en DB:', e);
-    }
+    } catch(e) {}
 }
 
-// Iniciar aplicación
-init();
+// ─── ENVIAR POR WHATSAPP ─────────────────────────────────────────
+window.generarWhatsApp = async function() {
+    if (!validarFormulario()) return;
+    const data = buildOrderData();
+    const orderId = await guardarPedidoFirebase(data, 'whatsapp');
+    await guardarEnSheets({ ...data, metodoPago: 'whatsapp' });
+
+    const msg = [
+        `🐢 *TORTAS TORTUGA — NUEVO PEDIDO*`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `👤 *Cliente:* ${data.nombre}`,
+        `📱 *Teléfono:* ${data.telefono || 'En tienda'}`,
+        `🚗 *Tipo:* ${data.tipo === 'delivery' ? '🛵 Domicilio' : '🏪 Recoger'}`,
+        ``,
+        `📋 *Orden:*`,
+        data.items,
+        ``,
+        `💰 *Total: ${data.total}*`,
+        data.ubicacion !== 'No especificada' ? `📍 *Ubicación:* ${data.ubicacion}` : '',
+        orderId ? `🔖 *ID:* ${orderId.slice(-6).toUpperCase()}` : '',
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `✅ Pedido enviado desde TortasTortuga.com`
+    ].filter(Boolean).join('\n');
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    cartModal.classList.remove('active');
+};
+
+// ─── BOTONES PRINCIPALES ─────────────────────────────────────────
+document.getElementById('checkout-btn').addEventListener('click', () => window.generarWhatsApp());
+document.getElementById('pay-now-btn').addEventListener('click', () => {
+    if (!validarFormulario()) return;
+    cartModal.classList.remove('active');
+    posModal.classList.add('active');
+});
+
+// ─── MODAL POS ───────────────────────────────────────────────────
+document.getElementById('close-pos').addEventListener('click', () => {
+    posModal.classList.remove('active');
+    ocultarInfoPago();
+});
+posModal.addEventListener('click', e => {
+    if (e.target === posModal) { posModal.classList.remove('active'); ocultarInfoPago(); }
+});
+
+const infoContent = {
+    cashapp: {
+        icon: '📱', titulo: 'Cash App',
+        instrucciones: `Envía el pago a:<br><strong class="pay-handle">$danielgomez580</strong><br><br>Incluye en el memo tu nombre y número de pedido.`
+    },
+    zelle: {
+        icon: '📲', titulo: 'Zelle',
+        instrucciones: `Envía a:<br><strong class="pay-handle">210-771-3679</strong><br>Nombre: <strong>Daniel Mata</strong><br><br>Incluye tu nombre en el comentario.`
+    },
+    venmo: {
+        icon: '💸', titulo: 'Venmo',
+        instrucciones: `Envía a:<br><strong class="pay-handle">@danielgomez580</strong><br><br>Pon tu nombre y pedido en la nota.`
+    },
+    cash: {
+        icon: '💵', titulo: 'Efectivo',
+        instrucciones: `Paga en efectivo al momento de recibir tu orden.<br><br>Prepara el monto exacto si es posible: <strong id="cash-total"></strong>`
+    }
+};
+
+window.mostrarInfoPago = function(metodo) {
+    currentPaymentMethod = metodo;
+    const info = infoContent[metodo];
+    const total = cart.reduce((s, i) => s + i.precio, 0);
+    document.getElementById('pos-info-content').innerHTML = `
+        <div class="pay-info-card">
+            <div class="pay-info-icon">${info.icon}</div>
+            <h3 class="pay-info-title">${info.titulo}</h3>
+            <p class="pay-info-text">${info.instrucciones.replace('</strong>', ` $${total.toFixed(2)}</strong>`)}</p>
+        </div>`;
+    document.getElementById('pos-info-panel').style.display = 'block';
+    document.querySelector('.pos-body').style.display = 'none';
+};
+
+window.ocultarInfoPago = function() {
+    document.getElementById('pos-info-panel').style.display = 'none';
+    document.querySelector('.pos-body').style.display = 'block';
+    currentPaymentMethod = null;
+};
+
+window.confirmarPago = async function() {
+    const data = buildOrderData();
+    const orderId = await guardarPedidoFirebase(data, currentPaymentMethod);
+    await guardarEnSheets({ ...data, metodoPago: currentPaymentMethod });
+    posModal.classList.remove('active');
+    ocultarInfoPago();
+    cart = []; updateCart();
+    const metodoNombre = infoContent[currentPaymentMethod]?.titulo || currentPaymentMethod;
+    alert(`✅ ¡Orden confirmada!\nMétodo: ${metodoNombre}\nID: ${orderId ? orderId.slice(-6).toUpperCase() : 'N/A'}\n\nTe llegará confirmación por WhatsApp.`);
+};
+
+window.pagarConStripe = async function() {
+    if (!validarFormulario()) return;
+    const data = buildOrderData();
+    await guardarPedidoFirebase(data, 'stripe');
+    await guardarEnSheets({ ...data, metodoPago: 'stripe' });
+    const total = data.totalNum * 100;
+    const url = `${STRIPE_PAYMENT_LINK}?prefilled_email=${encodeURIComponent(document.getElementById('customer-name').value)}`;
+    window.open(url, '_blank');
+    posModal.classList.remove('active');
+};
+
+// ─── TIPO DE ENTREGA ────────────────────────────────────────────
+document.querySelectorAll('input[name="order-type"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const loc = document.getElementById('location-section');
+        if (loc) loc.style.display = radio.value === 'delivery' ? 'block' : 'none';
+    });
+});
+
+// ─── GPS AUTOMÁTICO ──────────────────────────────────────────────
+document.getElementById('get-location-btn')?.addEventListener('click', () => obtenerUbicacion());
+document.getElementById('locate-by-phone-btn')?.addEventListener('click', () => obtenerUbicacion());
+
+function obtenerUbicacion() {
+    if (!navigator.geolocation) { alert('GPS no disponible.'); return; }
+    const btn = document.getElementById('get-location-btn');
+    const status = document.getElementById('location-status');
+    if (btn) { btn.textContent = '⏳ Obteniendo...'; btn.disabled = true; }
+    navigator.geolocation.getCurrentPosition(async pos => {
+        clientLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        if (status) {
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${clientLocation.lat}&lon=${clientLocation.lon}&format=json`);
+                const d = await r.json();
+                status.innerHTML = `✅ <strong>${d.display_name?.split(',').slice(0,3).join(',')||'Ubicación obtenida'}</strong>`;
+            } catch { status.innerHTML = `✅ GPS: ${clientLocation.lat.toFixed(4)}, ${clientLocation.lon.toFixed(4)}`; }
+        }
+        if (btn) { btn.textContent = '✅ Ubicación obtenida'; btn.disabled = false; }
+    }, () => {
+        if (btn) { btn.textContent = '❌ No se pudo obtener GPS'; btn.disabled = false; }
+    });
+}
+
+// ─── TABS UBICACIÓN ──────────────────────────────────────────────
+document.getElementById('tab-gps')?.addEventListener('click', () => {
+    document.getElementById('panel-gps').style.display = 'block';
+    document.getElementById('panel-address').style.display = 'none';
+    document.getElementById('tab-gps').classList.add('active');
+    document.getElementById('tab-address').classList.remove('active');
+});
+document.getElementById('tab-address')?.addEventListener('click', () => {
+    document.getElementById('panel-address').style.display = 'block';
+    document.getElementById('panel-gps').style.display = 'none';
+    document.getElementById('tab-address').classList.add('active');
+    document.getElementById('tab-gps').classList.remove('active');
+});
+
+// ─── CHECKBOX PRESENCIAL ─────────────────────────────────────────
+document.getElementById('no-phone-checkbox')?.addEventListener('change', e => {
+    const phoneInput = document.getElementById('customer-phone');
+    const hint = document.getElementById('phone-hint');
+    if (e.target.checked) {
+        phoneInput.disabled = true;
+        phoneInput.style.opacity = '0.4';
+        hint.textContent = '🏪 Modo presencial activado.';
+    } else {
+        phoneInput.disabled = false;
+        phoneInput.style.opacity = '1';
+        hint.textContent = '⚠️ Requerido para identificar tu pedido.';
+    }
+});
+
+// ─── VALIDACIÓN TELÉFONO EN VIVO ────────────────────────────────
+document.getElementById('customer-phone')?.addEventListener('input', e => {
+    const val = e.target.value.replace(/\D/g, '');
+    const hint = document.getElementById('phone-hint');
+    e.target.classList.toggle('input-ok', val.length >= 10);
+    e.target.classList.toggle('input-error', val.length > 0 && val.length < 10);
+    if (val.length >= 10) hint.textContent = '✅ Teléfono válido.';
+    else if (val.length > 0) hint.textContent = `⚠️ Faltan ${10 - val.length} dígitos.`;
+});
+
+// Buscar dirección manual
+document.getElementById('search-address-btn')?.addEventListener('click', async () => {
+    const calle = document.getElementById('addr-street').value.trim();
+    const ciudad = document.getElementById('addr-city').value.trim();
+    const zip = document.getElementById('addr-zip').value.trim();
+    const status = document.getElementById('address-status');
+    if (!calle) { status.innerHTML = '⚠️ Ingresa una calle'; return; }
+    status.innerHTML = '⏳ Buscando...';
+    try {
+        const q = encodeURIComponent(`${calle}, ${ciudad}, TX ${zip}`);
+        const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`);
+        const d = await r.json();
+        if (d[0]) {
+            clientLocation = { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon) };
+            status.innerHTML = `✅ <strong>${d[0].display_name.split(',').slice(0,3).join(',')}</strong>`;
+        } else status.innerHTML = '❌ Dirección no encontrada. Escríbela manualmente.';
+    } catch { status.innerHTML = '❌ Error al buscar.'; }
+});
