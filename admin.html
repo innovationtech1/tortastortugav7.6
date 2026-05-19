@@ -114,6 +114,7 @@
     <div class="top-bar">
         <div class="top-bar-logo">🐢 <span>Tortas Tortuga</span></div>
         <div class="top-bar-actions" style="display:flex; align-items:center; gap:1rem;">
+            <button class="filter-btn" onclick="abrirCorteCaja()" style="border-color:var(--green); color:var(--green);">💰 Corte de Caja</button>
             <button class="filter-btn" onclick="window.location.href='index.html'" style="border-color:var(--border);">🏠 Tienda</button>
             <div class="live-badge"><div class="live-dot"></div> En vivo</div>
         </div>
@@ -186,6 +187,25 @@
     </div>
 </div>
 
+<!-- MODAL CORTE DE CAJA -->
+<div class="caja-overlay" id="corte-modal">
+    <div class="caja-modal">
+        <h3 class="caja-title">💰 Corte de Caja (Hoy)</h3>
+        <div style="text-align: left; margin: 1.5rem 0; font-size: 1.1rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1rem 0;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>💵 Efectivo:</span> <strong id="corte-efectivo" class="green">$0.00</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>🟣 Zelle:</span> <strong id="corte-zelle" style="color:#6D1ED4;">$0.00</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>🟢 Cash App:</span> <strong id="corte-cashapp" style="color:#00D64F;">$0.00</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>🔵 Venmo:</span> <strong id="corte-venmo" style="color:#008CFF;">$0.00</strong></div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;"><span>💳 Tarjeta/Stripe:</span> <strong id="corte-tarjeta">$0.00</strong></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size: 1.3rem; font-weight:bold;">
+            <span>TOTAL VENTAS:</span>
+            <span id="corte-total-ventas" class="orange">$0.00</span>
+        </div>
+        <button class="caja-btn btn-close" onclick="document.getElementById('corte-modal').classList.remove('active')">Cerrar</button>
+    </div>
+</div>
+
 <script type="module">
     import { db } from './firebase-config.js';
     import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
@@ -217,10 +237,12 @@
             });
             actualizarUI();
             
-            // Reproducir sonido si hay un pedido "Nuevo" (opcional)
+            // Reproducir sonido si hay un pedido "Nuevo"
             const hayNuevos = pedidosDB.some(p => p.estado === 'Nuevo 🆕');
             if(hayNuevos) {
-                // new Audio('campana.mp3').play().catch(e=>{});
+                // Alarma suave de restaurante
+                const audio = new Audio('https://actions.google.com/sounds/v1/alarms/dinner_bell.ogg');
+                audio.play().catch(e=>{});
             }
         });
     }
@@ -300,7 +322,8 @@
             return `<tr>
                 <td>
                     <span class="order-id" style="font-size:1.1rem;color:var(--yellow)">#${ticketId}</span><br>
-                    <small style="color:var(--muted)">${hora}</small>
+                    <small style="color:var(--muted)">${hora}</small><br>
+                    <button class="print-btn" onclick="window.imprimirTicket('${ticketId}')" style="margin-top:4px; font-size:0.7rem; padding:2px 5px; background:var(--surface2); color:white; border:1px solid var(--border); border-radius:4px; cursor:pointer;">🖨️ Imprimir</button>
                 </td>
                 <td>
                     <strong>${p.nombre || '—'}</strong><br>
@@ -372,11 +395,9 @@
     window.procesarPago = async (metodoReal) => {
         if(!currentOrderId) return;
         try {
-            // Actualizar el documento en Firebase
             await updateDoc(doc(db, 'pedidos', currentOrderId), { 
                 estadoPago: 'Pagado',
                 metodoPagoReal: metodoReal,
-                // Si estaba en 'Nuevo', pasarlo a preparación automáticamente al pagar
                 estado: 'En preparación 🧑‍🍳' 
             });
             cerrarCaja();
@@ -384,6 +405,69 @@
             alert('Error procesando el cobro en la base de datos.');
             console.error(e);
         }
+    };
+
+    // ─── CORTE DE CAJA ───────────────────────────────────────
+    window.abrirCorteCaja = () => {
+        let totales = { Efectivo: 0, Zelle: 0, 'Cash App': 0, Venmo: 0, Tarjeta: 0 };
+        let granTotal = 0;
+        
+        // Sumar solo los pedidos de "hoy" (o los actualmente cargados) que estén pagados
+        pedidosDB.forEach(p => {
+            if (p.estadoPago === 'Pagado' && p.estado !== 'Cancelado ❌' && p.totalNum) {
+                const metodo = p.metodoPagoReal || 'Efectivo';
+                if(totales[metodo] !== undefined) {
+                    totales[metodo] += p.totalNum;
+                    granTotal += p.totalNum;
+                }
+            }
+        });
+
+        document.getElementById('corte-efectivo').textContent = '$' + totales.Efectivo.toFixed(2);
+        document.getElementById('corte-zelle').textContent = '$' + totales.Zelle.toFixed(2);
+        document.getElementById('corte-cashapp').textContent = '$' + totales['Cash App'].toFixed(2);
+        document.getElementById('corte-venmo').textContent = '$' + totales.Venmo.toFixed(2);
+        document.getElementById('corte-tarjeta').textContent = '$' + totales.Tarjeta.toFixed(2);
+        document.getElementById('corte-total-ventas').textContent = '$' + granTotal.toFixed(2);
+        
+        document.getElementById('corte-modal').classList.add('active');
+    };
+
+    // ─── IMPRESIÓN DE TICKET ──────────────────────────────────
+    window.imprimirTicket = (ticketId) => {
+        const pedido = pedidosDB.find(p => p.id.slice(-4).toUpperCase() === ticketId);
+        if(!pedido) return;
+        
+        const win = window.open('', '_blank');
+        win.document.write(`
+            <html>
+            <head>
+                <style>
+                    body { font-family: monospace; width: 300px; padding: 10px; margin: 0 auto; color: black; background: white; }
+                    .center { text-align: center; }
+                    .bold { font-weight: bold; }
+                    .items { margin: 15px 0; border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 10px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="center">
+                    <h2 style="margin:0;">TORTAS TORTUGA</h2>
+                    <p style="margin:5px 0;">Ticket #${ticketId}</p>
+                    <p style="margin:5px 0;">${new Date().toLocaleString()}</p>
+                </div>
+                <div class="items">
+                    <p class="bold">Cliente: ${pedido.nombre}</p>
+                    <p>Tel: ${pedido.telefono || 'En tienda'}</p>
+                    <p>Tipo: ${pedido.tipo}</p>
+                    <br>
+                    <div style="white-space: pre-wrap;">${pedido.items}</div>
+                </div>
+                <h3 style="text-align:right;">TOTAL: ${pedido.total}</h3>
+                <p class="center" style="margin-top:20px; font-size:12px;">¡Gracias por tu compra!</p>
+                <script>window.print(); window.close();</script>
+            </body>
+            </html>
+        `);
     };
 </script>
 </body>

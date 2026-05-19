@@ -17,7 +17,7 @@ const precios = {
 };
 
 // ─── ESTADO ─────────────────────────────────────────────────────
-let cart = [];
+let cart = JSON.parse(localStorage.getItem('tt_cart') || '[]');
 let pendingItem = null;
 let clientLocation = null;
 let currentPaymentMethod = null;
