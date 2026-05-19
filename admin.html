@@ -172,7 +172,11 @@
         <div class="caja-total" id="caja-total-monto">$0.00</div>
         
         <button class="caja-btn btn-efectivo" onclick="procesarPago('Efectivo')">💵 Pagado en Efectivo</button>
-        <button class="caja-btn btn-digital" onclick="procesarPago('Digital')">📲 Pagado con Zelle/App</button>
+        <button class="caja-btn" style="background:#6D1ED4; color:white;" onclick="procesarPago('Zelle')">🟣 Pagado con Zelle</button>
+        <button class="caja-btn" style="background:#00D64F; color:white;" onclick="procesarPago('Cash App')">🟢 Pagado con Cash App</button>
+        <button class="caja-btn" style="background:#008CFF; color:white;" onclick="procesarPago('Venmo')">🔵 Pagado con Venmo</button>
+        <button class="caja-btn" style="background:#222; color:white; border: 1px solid #444;" onclick="procesarPago('Tarjeta')">💳 Pagado con Tarjeta (POS/Stripe)</button>
+        
         <button class="caja-btn btn-close" onclick="cerrarCaja()">Cancelar</button>
     </div>
 </div>
