@@ -1,7 +1,7 @@
 // app.js v6 — Tortas Tortuga: Carrito + Firebase + POS
 import { db, auth } from './firebase-config.js';
 import {
-    collection, addDoc, serverTimestamp
+    collection, addDoc, serverTimestamp, query, where, getDocs, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ─── CONFIG ─────────────────────────────────────────────────────
@@ -169,13 +169,17 @@ async function guardarPedidoFirebase(data, metodoPago) {
         const ref = await addDoc(collection(db, 'pedidos'), {
             ...data,
             metodoPago: metodoPago || 'pendiente',
+            estadoPago: 'Por pagar',
             estado: 'Nuevo 🆕',
             uid: window._firebaseUser?.uid || 'anonimo',
             creado: serverTimestamp()
         });
-        lastOrderId = ref.id;
+        
+        // El ticket son los últimos 4 caracteres del ID de Firebase
+        const ticketId = ref.id.slice(-4).toUpperCase();
+        
         console.log('✅ Pedido guardado:', ref.id);
-        return ref.id;
+        return { id: ref.id, ticket: ticketId };
     } catch(e) {
         console.warn('Firebase save error:', e);
         return null;
@@ -198,8 +202,10 @@ async function guardarEnSheets(data) {
 window.generarWhatsApp = async function() {
     if (!validarFormulario()) return;
     const data = buildOrderData();
-    const orderId = await guardarPedidoFirebase(data, 'whatsapp');
+    const result = await guardarPedidoFirebase(data, 'whatsapp');
     await guardarEnSheets({ ...data, metodoPago: 'whatsapp' });
+
+    const ticketStr = result ? result.ticket : 'N/A';
 
     const msg = [
         `🐢 *TORTAS TORTUGA — NUEVO PEDIDO*`,
@@ -213,7 +219,7 @@ window.generarWhatsApp = async function() {
         ``,
         `💰 *Total: ${data.total}*`,
         data.ubicacion !== 'No especificada' ? `📍 *Ubicación:* ${data.ubicacion}` : '',
-        orderId ? `🔖 *ID:* ${orderId.slice(-6).toUpperCase()}` : '',
+        `🔖 *TICKET: #${ticketStr}*`,
         `━━━━━━━━━━━━━━━━━━━━`,
         `✅ Pedido enviado desde TortasTortuga.com`
     ].filter(Boolean).join('\n');
@@ -280,30 +286,30 @@ window.ocultarInfoPago = function() {
 
 window.confirmarPago = async function() {
     const data = buildOrderData();
-    const orderId = await guardarPedidoFirebase(data, currentPaymentMethod);
+    const result = await guardarPedidoFirebase(data, currentPaymentMethod);
     await guardarEnSheets({ ...data, metodoPago: currentPaymentMethod });
     posModal.classList.remove('active');
     ocultarInfoPago();
     cart = []; updateCart();
     const metodoNombre = infoContent[currentPaymentMethod]?.titulo || currentPaymentMethod;
-    alert(`✅ ¡Orden confirmada!\nMétodo: ${metodoNombre}\nID: ${orderId ? orderId.slice(-6).toUpperCase() : 'N/A'}\n\nTe llegará confirmación por WhatsApp.`);
+    alert(`✅ ¡Orden confirmada!\n\nMétodo: ${metodoNombre}\nTICKET: #${result ? result.ticket : 'N/A'}\n\nCon este número de Ticket puedes rastrear tu orden en el carrito.`);
 };
 
 window.pagarConStripe = async function() {
     if (!validarFormulario()) return;
     const data = buildOrderData();
-    const orderId = await guardarPedidoFirebase(data, 'stripe-pending');
+    const result = await guardarPedidoFirebase(data, 'stripe-pending');
     await guardarEnSheets({ ...data, metodoPago: 'stripe' });
 
     if (!STRIPE_PAYMENT_LINK) {
         // Sin Payment Link aún — mostrar instrucciones
-        alert('⚙️ Los pagos con tarjeta están en configuración.\n\nPor favor usa Cash App, Zelle, Venmo o Efectivo por ahora.\n\nID de tu orden: ' + (orderId?.slice(-6).toUpperCase() || 'N/A'));
+        alert(`⚙️ Los pagos con tarjeta están en configuración.\n\nPor favor usa Efectivo, Zelle o Cash App.\n\nTICKET: #${result ? result.ticket : 'N/A'}`);
         return;
     }
 
     // Redirigir a Stripe con prefill del nombre
     const nombre = encodeURIComponent(data.nombre);
-    const url = `${STRIPE_PAYMENT_LINK}?prefilled_name=${nombre}&client_reference_id=${orderId || 'TT'}`;
+    const url = `${STRIPE_PAYMENT_LINK}?prefilled_name=${nombre}&client_reference_id=${result ? result.id : 'TT'}`;
     window.open(url, '_blank');
     posModal.classList.remove('active');
     cart = []; updateCart();
@@ -398,3 +404,60 @@ document.getElementById('search-address-btn')?.addEventListener('click', async (
         } else status.innerHTML = '❌ Dirección no encontrada. Escríbela manualmente.';
     } catch { status.innerHTML = '❌ Error al buscar.'; }
 });
+
+// ─── BUSCADOR DE TICKETS (RASTREADOR) ─────────────────────────
+document.getElementById('ticket-search-btn')?.addEventListener('click', window.buscarTicket);
+document.getElementById('ticket-search-input')?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') window.buscarTicket();
+});
+
+window.buscarTicket = async function() {
+    const input = document.getElementById('ticket-search-input');
+    const resultDiv = document.getElementById('ticket-search-result');
+    let ticket = input.value.trim().toUpperCase();
+    if (ticket.startsWith('#')) ticket = ticket.substring(1);
+    
+    if (!ticket) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '⚠️ Ingresa un número de ticket válido.';
+        return;
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '⏳ Buscando orden...';
+
+    try {
+        // Consultamos todos los pedidos del usuario actual (o todos si es admin, pero esto es frontend)
+        // Para buscar por ticket (que son los ultimos 4 caracteres), traemos los ultimos pedidos.
+        // Dado que Firestore no soporta endsWith, tenemos que traerlos y filtrar localmente.
+        const q = query(collection(db, 'pedidos'), orderBy('creado', 'desc'));
+        const snapshot = await getDocs(q);
+        
+        let found = null;
+        snapshot.forEach(doc => {
+            if (doc.id.toUpperCase().endsWith(ticket)) {
+                found = { id: doc.id, ...doc.data() };
+            }
+        });
+
+        if (found) {
+            const pagoTxt = found.estadoPago === 'Pagado' ? '✅ Pagado' : '🔴 ' + (found.estadoPago || 'Por pagar');
+            resultDiv.innerHTML = `
+                <div style="margin-bottom:0.4rem;"><strong>Ticket #${ticket}</strong> — ${found.nombre}</div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem; color:var(--primary);">
+                    <span>Estado en cocina:</span>
+                    <strong>${found.estado || 'Nuevo 🆕'}</strong>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>Estado del pago:</span>
+                    <strong>${pagoTxt} (${found.total})</strong>
+                </div>
+            `;
+        } else {
+            resultDiv.innerHTML = '❌ No se encontró ningún pedido con este ticket hoy.';
+        }
+    } catch (e) {
+        console.error(e);
+        resultDiv.innerHTML = '⚠️ Hubo un error al buscar el ticket. Revisa tu conexión.';
+    }
+};
