@@ -6,7 +6,8 @@ import {
 
 // ─── CONFIG ─────────────────────────────────────────────────────
 const WHATSAPP_NUMBER = '12108678210';
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_XXXXXXXX'; // 👈 reemplazar con tu link real
+const STRIPE_PK = 'pk_test_51TYeb5D50m9DLc4teUV79AZGoopwCp2qoblTAoZcMJsNmwCGzoGC1yJrEuK3I0JftMgomrZt6X3zBnn6hCLoc5QX00LOLbVstY';
+let STRIPE_PAYMENT_LINK = ''; // Se llenará cuando el usuario cree su Payment Link
 const APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL';
 
 // ─── PRECIOS BASE por id ─────────────────────────────────────────
@@ -291,12 +292,21 @@ window.confirmarPago = async function() {
 window.pagarConStripe = async function() {
     if (!validarFormulario()) return;
     const data = buildOrderData();
-    await guardarPedidoFirebase(data, 'stripe');
+    const orderId = await guardarPedidoFirebase(data, 'stripe-pending');
     await guardarEnSheets({ ...data, metodoPago: 'stripe' });
-    const total = data.totalNum * 100;
-    const url = `${STRIPE_PAYMENT_LINK}?prefilled_email=${encodeURIComponent(document.getElementById('customer-name').value)}`;
+
+    if (!STRIPE_PAYMENT_LINK) {
+        // Sin Payment Link aún — mostrar instrucciones
+        alert('⚙️ Los pagos con tarjeta están en configuración.\n\nPor favor usa Cash App, Zelle, Venmo o Efectivo por ahora.\n\nID de tu orden: ' + (orderId?.slice(-6).toUpperCase() || 'N/A'));
+        return;
+    }
+
+    // Redirigir a Stripe con prefill del nombre
+    const nombre = encodeURIComponent(data.nombre);
+    const url = `${STRIPE_PAYMENT_LINK}?prefilled_name=${nombre}&client_reference_id=${orderId || 'TT'}`;
     window.open(url, '_blank');
     posModal.classList.remove('active');
+    cart = []; updateCart();
 };
 
 // ─── TIPO DE ENTREGA ────────────────────────────────────────────
