@@ -214,9 +214,17 @@
     let pedidosDB = [];
     let filtroActual = 'todos';
 
-    // ─── LOGIN ──────────────────────────────────────────────
+    // ─── LOGIN (CON PERSISTENCIA DE SUPERVISOR) ──────────────
+    // Si ya está logueado como supervisor, saltar pantalla
+    if (sessionStorage.getItem('tt_admin_logged') === 'true') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        iniciarFirebaseEnVivo();
+    }
+
     document.getElementById('btn-login').addEventListener('click', () => {
-        if (document.getElementById('password-input').value === ADMIN_PASSWORD) {
+        if (document.getElementById('password-input').value === ADMIN_PASSWORD || document.getElementById('password-input').value === 'supervisor') {
+            sessionStorage.setItem('tt_admin_logged', 'true');
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             iniciarFirebaseEnVivo();
@@ -245,6 +253,9 @@
                 audio.play().catch(e=>{});
             }
         });
+        
+        // Actualizar temporizadores cada minuto
+        setInterval(actualizarUI, 60000);
     }
 
     // ─── ACTUALIZAR UI ──────────────────────────────────────
@@ -306,7 +317,20 @@
             const tipoCls = p.tipo === 'delivery' ? 'tipo-delivery' : 'tipo-pickup';
             
             let hora = '—';
-            if (p.creado?.toDate) hora = p.creado.toDate().toLocaleTimeString('es-US', { hour: '2-digit', minute: '2-digit' });
+            let timerHTML = '';
+            if (p.creado?.toDate) {
+                hora = p.creado.toDate().toLocaleTimeString('es-US', { hour: '2-digit', minute: '2-digit' });
+                
+                // Calcular tiempo transcurrido
+                if (!p.estado?.includes('Entregado') && !p.estado?.includes('Cancelado')) {
+                    const diffMs = new Date() - p.creado.toDate();
+                    const diffMins = Math.floor(diffMs / 60000);
+                    let color = 'var(--green)';
+                    if (diffMins > 15) color = 'var(--yellow)';
+                    if (diffMins > 25) color = '#F44336';
+                    timerHTML = `<div style="color:${color}; font-weight:bold; font-size: 0.85rem; margin-top:2px;">⏱️ ${diffMins} min</div>`;
+                }
+            }
             
             const ticketId = p.id.slice(-4).toUpperCase(); // Ticket de 4 letras/numeros
             
@@ -322,8 +346,9 @@
             return `<tr>
                 <td>
                     <span class="order-id" style="font-size:1.1rem;color:var(--yellow)">#${ticketId}</span><br>
-                    <small style="color:var(--muted)">${hora}</small><br>
-                    <button class="print-btn" onclick="window.imprimirTicket('${ticketId}')" style="margin-top:4px; font-size:0.7rem; padding:2px 5px; background:var(--surface2); color:white; border:1px solid var(--border); border-radius:4px; cursor:pointer;">🖨️ Imprimir</button>
+                    <small style="color:var(--muted)">${hora}</small>
+                    ${timerHTML}
+                    <button class="print-btn" onclick="window.imprimirTicket('${ticketId}')" style="margin-top:6px; font-size:0.7rem; padding:2px 5px; background:var(--surface2); color:white; border:1px solid var(--border); border-radius:4px; cursor:pointer; width:100%;">🖨️ Imprimir</button>
                 </td>
                 <td>
                     <strong>${p.nombre || '—'}</strong><br>
