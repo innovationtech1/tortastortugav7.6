@@ -148,9 +148,20 @@
     </div>
 
     <!-- BUSCADOR INTELIGENTE POS -->
-    <div style="padding: 0 2rem; margin-bottom: 1.5rem;">
-        <input type="text" id="admin-search" placeholder="🔍 Buscar orden por Ticket (ej. A4B2), Nombre o Teléfono..." style="width:100%; padding: 1rem 1.2rem; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,0,0,0.4); color: white; font-size: 1.1rem; font-family: inherit;">
+    <div class="search-container" style="padding: 0 2rem; margin-bottom: 1.5rem; position: relative;">
+        <div style="position: relative; display: flex; align-items: center;">
+            <span style="position: absolute; left: 1.2rem; font-size: 1.3rem; color: var(--muted); pointer-events: none;">🔍</span>
+            <input type="text" id="admin-search" placeholder="Buscar por Ticket, Nombre, Teléfono, Platillo o Método de pago..." style="width:100%; padding: 1rem 3rem; border-radius: 12px; border: 1px solid var(--primary); background: rgba(0,0,0,0.4); color: white; font-size: 1.1rem; font-family: inherit; transition: all 0.3s; outline: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <button id="clear-search" style="position: absolute; right: 1.2rem; background: rgba(255,255,255,0.1); border: none; color: white; font-size: 0.9rem; cursor: pointer; display: none; padding: 0.4rem; border-radius: 50%; width: 28px; height: 28px; line-height: 1; align-items: center; justify-content: center; transition: 0.2s;">✖</button>
+        </div>
+        <div id="search-stats" style="margin-top: 0.8rem; font-size: 0.9rem; color: var(--primary); font-weight: 600; display: none; padding-left: 0.5rem; animation: fadeIn 0.3s;"></div>
     </div>
+    <style>
+        #admin-search:focus { box-shadow: 0 0 0 3px rgba(255,90,0,0.3); background: rgba(0,0,0,0.6); }
+        #clear-search:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+        .highlight { background: rgba(255, 214, 0, 0.4); color: #FFD600; border-radius: 4px; padding: 0 3px; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 
     <div class="table-wrapper">
         <table>
@@ -258,9 +269,21 @@
         setInterval(actualizarUI, 60000);
     }
 
+    // ─── HELPER HIGHLIGHT ───────────────────────────────────
+    function resaltar(texto, busqueda) {
+        if(!busqueda || !texto) return texto;
+        const regex = new RegExp(`(${busqueda.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return texto.replace(regex, '<span class="highlight">$1</span>');
+    }
+
     // ─── ACTUALIZAR UI ──────────────────────────────────────
     function actualizarUI() {
-        const searchText = (document.getElementById('admin-search')?.value || '').toLowerCase();
+        const searchInput = document.getElementById('admin-search');
+        const searchText = (searchInput?.value || '').trim().toLowerCase();
+        const clearBtn = document.getElementById('clear-search');
+        const searchStats = document.getElementById('search-stats');
+        
+        if(clearBtn) clearBtn.style.display = searchText ? 'flex' : 'none';
         
         // Estadísticas
         document.getElementById('stat-total').textContent = pedidosDB.length;
@@ -273,14 +296,32 @@
             ? pedidosDB 
             : pedidosDB.filter(p => p.estado?.includes(filtroActual));
             
-        // Filtrar por búsqueda inteligente (Ticket, Nombre, Teléfono)
+        // Filtrar por búsqueda inteligente extendida
         if (searchText) {
             filtrados = filtrados.filter(p => {
                 const ticket = p.id.slice(-4).toLowerCase();
                 const nombre = (p.nombre || '').toLowerCase();
                 const tel = (p.telefono || '').toLowerCase();
-                return ticket.includes(searchText) || nombre.includes(searchText) || tel.includes(searchText);
+                const items = (p.items || '').toLowerCase();
+                const pago = (p.metodoPagoReal || p.metodoPago || '').toLowerCase();
+                const estado = (p.estado || '').toLowerCase();
+                const tipo = (p.tipo || '').toLowerCase();
+                
+                return ticket.includes(searchText) || 
+                       nombre.includes(searchText) || 
+                       tel.includes(searchText) ||
+                       items.includes(searchText) ||
+                       pago.includes(searchText) ||
+                       estado.includes(searchText) ||
+                       tipo.includes(searchText);
             });
+            
+            if(searchStats) {
+                searchStats.style.display = 'block';
+                searchStats.innerHTML = `✨ Mostrando ${filtrados.length} pedido${filtrados.length !== 1 ? 's' : ''} coincidiendo con "${searchText}"`;
+            }
+        } else {
+            if(searchStats) searchStats.style.display = 'none';
         }
         
         renderTabla(filtrados);
@@ -297,6 +338,14 @@
     });
     
     document.getElementById('admin-search')?.addEventListener('input', actualizarUI);
+    document.getElementById('clear-search')?.addEventListener('click', () => {
+        const input = document.getElementById('admin-search');
+        if(input) {
+            input.value = '';
+            actualizarUI();
+            input.focus();
+        }
+    });
 
     // ─── RENDER TABLA ───────────────────────────────────────
     function renderTabla(pedidos) {
@@ -343,19 +392,36 @@
                 pagoHTML = `<button class="btn-cobrar-grid" onclick="abrirCaja('${p.id}', '${ticketId}', '${p.total}')">🔴 Cobrar ${p.total}</button><br><span class="pay-badge" style="margin-top:4px;display:inline-block">Pide: ${p.metodoPago || '?'}</span>`;
             }
 
+            const searchText = (document.getElementById('admin-search')?.value || '').trim();
+            
+            let displayTicket = ticketId;
+            let displayNombre = p.nombre || '—';
+            let displayTel = p.telefono || 'En tienda';
+            let displayItems = p.items || '—';
+            let displayTipo = tipo;
+            
+            if (searchText) {
+                displayTicket = resaltar(displayTicket, searchText);
+                displayNombre = resaltar(displayNombre, searchText);
+                displayTel = resaltar(displayTel, searchText);
+                displayItems = resaltar(displayItems, searchText);
+                displayTipo = resaltar(displayTipo, searchText);
+            }
+            displayItems = displayItems.replace(/\n/g, '<br>');
+
             return `<tr>
                 <td>
-                    <span class="order-id" style="font-size:1.1rem;color:var(--yellow)">#${ticketId}</span><br>
+                    <span class="order-id" style="font-size:1.1rem;color:var(--yellow)">#${displayTicket}</span><br>
                     <small style="color:var(--muted)">${hora}</small>
                     ${timerHTML}
                     <button class="print-btn" onclick="window.imprimirTicket('${ticketId}')" style="margin-top:6px; font-size:0.7rem; padding:2px 5px; background:var(--surface2); color:white; border:1px solid var(--border); border-radius:4px; cursor:pointer; width:100%;">🖨️ Imprimir</button>
                 </td>
                 <td>
-                    <strong>${p.nombre || '—'}</strong><br>
-                    <span style="color:var(--muted);font-size:0.85rem">📞 ${p.telefono || 'En tienda'}</span><br>
-                    <span class="tipo-badge ${tipoCls}" style="margin-top:4px">${tipo}</span>
+                    <strong>${displayNombre}</strong><br>
+                    <span style="color:var(--muted);font-size:0.85rem">📞 ${displayTel}</span><br>
+                    <span class="tipo-badge ${tipoCls}" style="margin-top:4px">${displayTipo}</span>
                 </td>
-                <td><div class="order-items">${(p.items || '—').replace(/\n/g,'<br>')}</div></td>
+                <td><div class="order-items">${displayItems}</div></td>
                 <td>${pagoHTML}</td>
                 <td>
                     <select class="status-select ${estadoCls}" data-id="${p.id}" style="width:100%">
