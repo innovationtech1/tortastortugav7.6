@@ -1084,23 +1084,26 @@ body {
     display: flex; align-items: center; gap: 0.5rem;
 }
 .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 1.25rem;
+    max-width: 900px;
+    margin: 0 auto;
 }
-.drinks-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.drinks-grid { display: flex; flex-direction: column; }
 
 .product-card {
     background: var(--surface);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 18px;
     overflow: hidden;
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: row;
+    gap: 1.25rem; align-items: stretch;
     transition: transform 0.2s, box-shadow 0.2s;
 }
 .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
 
-.card-img-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #1a1a1a; }
+.card-img-wrap { width: 35%; flex-shrink: 0; position: relative; overflow: hidden; background: #1a1a1a; }
 .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.35s; }
 .product-card:hover .card-img { transform: scale(1.05); }
 

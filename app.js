@@ -41,7 +41,7 @@ cartModal.addEventListener('click', e => { if (e.target === cartModal) cartModal
 // ─── AGREGAR TORTA ───────────────────────────────────────────────
 window.addToCart = function(id, nombre) {
     const sel = document.getElementById(`select-${id}`);
-    const precio = parseInt(sel.value);
+    const precio = parseFloat(sel.value);
     pendingItem = { id, nombre, precio, modificaciones: [] };
     // Resetear chips
     document.querySelectorAll('.mod-chip input').forEach(c => c.checked = false);
@@ -52,8 +52,9 @@ window.addToCart = function(id, nombre) {
 };
 
 // ─── AGREGAR BEBIDA DIRECTA ──────────────────────────────────────
-window.addDrink = function(nombre, precio) {
-    cart.push({ nombre, precio, modificaciones: [] });
+window.addDrink = function(nombre, precio, detalle = '') {
+    const modificaciones = detalle ? [detalle] : [];
+    cart.push({ nombre, precio, modificaciones });
     updateCart();
     cartIcon.style.transform = 'scale(1.3)';
     setTimeout(() => cartIcon.style.transform = 'scale(1)', 250);
