@@ -63,300 +63,19 @@
         <h2 class="section-title">🥖 Nuestras Tortas</h2>
         <div class="menu-grid" id="menu-container">
 
-            <!-- 0. Double T -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-original.png" alt="La Special Double T" class="card-img" loading="lazy">
-                    <div class="card-badge badge-special">🆕 NEW!</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">NEW! La Special Double T</h3>
-                    <p class="product-desc">1 Whole BIG avocado with 15 slices of mix meats (ham, pork head cheese & turkey) with tomato, onions, mayo and queso fresco.</p>
-                    <div class="product-includes">✅ 2 Can Sodas + Chips incluidos</div>
-                    <select class="size-selector" id="select-double-t">
-                        <option value="20">COMBO · 15 Slices — $20</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('double-t','La Special Double T')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 1. Original -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-original.png" alt="Original Torta Tortuga" class="card-img" loading="lazy">
-                    <div class="card-badge badge-bestseller">⭐ Best Seller</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">1. Original Torta Tortuga</h3>
-                    <p class="product-desc">1 whole BIG avocado, 3 mix meat slices (ham, pork head cheese & turkey) with tomato, onions, mayo and queso fresco.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-original">
-                        <option value="17">A COMBO TRIPLE MEAT · 9 Slices — $17</option>
-                        <option value="16">B COMBO DOUBLE MEAT · 6 Slices — $16</option>
-                        <option value="14">C COMBO SINGLE MEAT · 3 Slices — $14</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('original','1. Original Torta Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 2. Turkey -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-original.png" alt="Turkey Tortuga" class="card-img" loading="lazy">
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">2. Turkey or Ham Tortuga</h3>
-                    <p class="product-desc">1 whole BIG avocado, turkey, ham or mix meat slices with tomato, onions, mayo and queso fresco.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-turkey">
-                        <option value="17">A COMBO TRIPLE MEAT · 9 Slices — $17</option>
-                        <option value="16">B COMBO DOUBLE MEAT · 6 Slices — $16</option>
-                        <option value="14">C COMBO SINGLE MEAT · 3 Slices — $14</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('turkey','2. Turkey or Ham Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 3. Pork -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-original.png" alt="Pork Tortuga" class="card-img" loading="lazy">
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">3. Pork Head Chz Tortuga</h3>
-                    <p class="product-desc">1 whole BIG avocado, pork head cheese meat slices, with tomato, onions, mayo and queso fresco.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-pork">
-                        <option value="17">A COMBO TRIPLE MEAT · 12 Slices — $17</option>
-                        <option value="16">B COMBO DOUBLE MEAT · 8 Slices — $16</option>
-                        <option value="14">C COMBO SINGLE MEAT · 4 Slices — $14</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('pork','3. Pork Head Chz Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 4. Shrimp -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-shrimp.png" alt="Shrimp Tortuga" class="card-img" loading="lazy">
-                    <div class="card-badge badge-special">🍤 Especial</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">4. Shrimp Tortuga</h3>
-                    <p class="product-desc">1 whole BIG avocado, shrimp with 3 mix meat slices (ham, turkey and pork head cheese), tomato, red onions, mayo and queso fresco.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-shrimp">
-                        <option value="20">A COMBO DOUBLE SHRIMP · 10 Shrimps — $20</option>
-                        <option value="17">B COMBO SINGLE · 5 Shrimps — $17</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('shrimp','4. Shrimp Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 5. All Meat -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-allmeat.png" alt="All Meat Tortuga" class="card-img" loading="lazy">
-                    <div class="card-badge badge-meat">🥩 All Meat</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">5. Only Meat No Veggies</h3>
-                    <p class="product-desc">3 mix meat slices (turkey, ham and pork head cheese) with mayo and queso fresco.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-allmeat">
-                        <option value="16">A COMBO TRIPLE MEAT · 15 Slices — $16</option>
-                        <option value="15">B COMBO DOUBLE MEAT · 12 Slices — $15</option>
-                        <option value="13">C COMBO SINGLE MEAT · 9 Slices — $13</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('allmeat','5. Only Meat No Veggies')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 6. Vegan -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-vegan.png" alt="Vegan Tortuga" class="card-img" loading="lazy">
-                    <div class="card-badge badge-veg">🌱 Vegan</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">6. Vegan Tortuga</h3>
-                    <p class="product-desc">2 whole BIG avocados, double tomatoes, double onions and double red onions w/ mayo.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-vegan">
-                        <option value="13">COMBO A — $13</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('vegan','6. Vegan Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
-            <!-- 7. Kids -->
-            <div class="product-card">
-                <div class="card-img-wrap">
-                    <img src="img/torta-kids.png" alt="Kids Tortuga" class="card-img" loading="lazy">
-                    <div class="card-badge badge-kids">👧 Kids</div>
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">7. Kids Tortuga</h3>
-                    <p class="product-desc">8 ham slices, cheese and mayo.</p>
-                    <div class="product-includes">✅ Can Soda + Chips incluidos</div>
-                    <select class="size-selector" id="select-kids">
-                        <option value="9">COMBO — $9</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addToCart('kids','7. Kids Tortuga')">➕ Agregar al Pedido</button>
-                </div>
-            </div>
-
         </div>
     </section>
 
     <!-- DRINKS -->
     <section class="menu-section">
         <h2 class="section-title">🍹 Drinks & Micheladas</h2>
-        <div class="menu-grid drinks-grid">
-            <div class="product-card drink-card">
-                <div class="card-img-wrap">
-                    <img src="img/michelada.png" alt="Miche Tortuga" class="card-img" loading="lazy">
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">Miche Tortuga</h3>
-                    <p class="product-desc">Clamato juice, fresh lime, Tajin, sauces. Squirt/Monster/Topo Chico.</p>
-                    <select class="size-selector" id="select-miche">
-                        <option value="15">w/ 6 shrimp — $15</option>
-                        <option value="13">w/ 3 shrimp — $13</option>
-                        <option value="12">w/ japanese nuts & red onions — $12</option>
-                        <option value="11">w/ cucumber & japanese nuts — $11</option>
-                        <option value="10">Plain — $10</option>
-                        <option value="8">Cup, Ice and Michelada Mix — $8</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Miche Tortuga', parseFloat(document.getElementById('select-miche').value), document.getElementById('select-miche').options[document.getElementById('select-miche').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-img-wrap">
-                    <img src="img/michelada.png" alt="TopoChico Preparado" class="card-img" loading="lazy">
-                </div>
-                <div class="card-body">
-                    <h3 class="product-title">TopoChico Preparado</h3>
-                    <p class="product-desc">NEW. Refreshing TopoChico with chamoy and Tajin on top.</p>
-                    <select class="size-selector" id="select-topochico">
-                        <option value="12">w/ 6 shrimp & botana — $12</option>
-                        <option value="10">w/ 3 shrimps & top — $10</option>
-                        <option value="7">Plain — $7</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('TopoChico Preparado', parseFloat(document.getElementById('select-topochico').value), document.getElementById('select-topochico').options[document.getElementById('select-topochico').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">El Squirt Ruso</h3>
-                    <p class="product-desc">Clamato juice, fresh lime, Tajin, Cucumber, japanese nuts, chamoy on top.</p>
-                    <select class="size-selector" id="select-squirt">
-                        <option value="12">w/ 3 shrimps & red onions — $12</option>
-                        <option value="10">Plain — $10</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('El Squirt Ruso', parseFloat(document.getElementById('select-squirt').value), document.getElementById('select-squirt').options[document.getElementById('select-squirt').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">The Hangover Monster</h3>
-                    <p class="product-desc">Clamato juice, fresh lime, sauces, with japanese nuts and red onions on top.</p>
-                    <select class="size-selector" id="select-hangover">
-                        <option value="13">w/ 3 shrimps — $13</option>
-                        <option value="11">Plain — $11</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('The Hangover Monster', parseFloat(document.getElementById('select-hangover').value), document.getElementById('select-hangover').options[document.getElementById('select-hangover').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Bottle Drinks</h3>
-                    <select class="size-selector" id="select-bottle">
-                        <option value="5">Topo Chico 600 ml — $5</option>
-                        <option value="4">Monster — $4</option>
-                        <option value="4">Mexican Coke — $4</option>
-                        <option value="3">Gatorade — $3</option>
-                        <option value="2">Can Soda — $2</option>
-                        <option value="2">Water Bottle — $2</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Bottle Drink', parseFloat(document.getElementById('select-bottle').value), document.getElementById('select-bottle').options[document.getElementById('select-bottle').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-        </div>
+        <div class="menu-grid drinks-grid" id="drinks-container"></div>
     </section>
 
     <!-- BOTANAS Y SIDES -->
     <section class="menu-section">
         <h2 class="section-title">🥒 Para Botanear & Sides</h2>
-        <div class="menu-grid drinks-grid">
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Shrimp Botana</h3>
-                    <p class="product-desc">Shrimps with Fresh cucumber, red onions, japanese nuts and Clamato juice.</p>
-                    <select class="size-selector" id="select-shrimp-botana">
-                        <option value="20">LG (15 shrimps) — $20</option>
-                        <option value="14">MD (10 shrimps) — $14</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Shrimp Botana', parseFloat(document.getElementById('select-shrimp-botana').value), document.getElementById('select-shrimp-botana').options[document.getElementById('select-shrimp-botana').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Botana Platter</h3>
-                    <p class="product-desc">Choice of chips, japanese nuts, cucumbers, red onions with chamoy, Tajin.</p>
-                    <select class="size-selector" id="select-botana-platter">
-                        <option value="12">LG — $12</option>
-                        <option value="8">SM — $8</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Botana Platter', parseFloat(document.getElementById('select-botana-platter').value), document.getElementById('select-botana-platter').options[document.getElementById('select-botana-platter').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Botana Japonesa</h3>
-                    <p class="product-desc">Choice of chips and japanese nuts, with chamoy, Tajin and Valentina sauce.</p>
-                    <select class="size-selector" id="select-botana-japonesa">
-                        <option value="10">LG — $10</option>
-                        <option value="6">SM — $6</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Botana Japonesa', parseFloat(document.getElementById('select-botana-japonesa').value), document.getElementById('select-botana-japonesa').options[document.getElementById('select-botana-japonesa').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Cucumbersitos</h3>
-                    <p class="product-desc">Cucumber slices with chamoy, Tajin and Valentina sauce on top.</p>
-                    <select class="size-selector" id="select-cucumbersitos">
-                        <option value="8">LG — $8</option>
-                        <option value="4">SM — $4</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Cucumbersitos', parseFloat(document.getElementById('select-cucumbersitos').value), document.getElementById('select-cucumbersitos').options[document.getElementById('select-cucumbersitos').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-
-            <div class="product-card drink-card">
-                <div class="card-body">
-                    <h3 class="product-title">Sides & Extras</h3>
-                    <select class="size-selector" id="select-sides">
-                        <option value="5">6 Shrimp — $5</option>
-                        <option value="3.5">Torta Bun — $3.50</option>
-                        <option value="2">Chips — $2.00</option>
-                        <option value="1">1 Shrimp — $1.00</option>
-                        <option value="1">1 Extra Slice of Meat — $1.00</option>
-                        <option value="1">Add Cup with Ice — $1.00</option>
-                        <option value="0.5">Extra Salsa or Jalapeno — $0.50</option>
-                    </select>
-                    <button class="add-to-cart" onclick="addDrink('Side/Extra', parseFloat(document.getElementById('select-sides').value), document.getElementById('select-sides').options[document.getElementById('select-sides').selectedIndex].text)">➕ Agregar</button>
-                </div>
-            </div>
-        </div>
+        <div class="menu-grid drinks-grid" id="botanas-container"></div>
     </section>
 </main>
 
@@ -591,6 +310,17 @@
 </div>
 
 <script type="module" src="app.js?v=6"></script>
+<script type="module">
+    import { seedProductos, renderMenu } from './menu.js';
+    (async () => {
+        try {
+            await seedProductos();
+            await renderMenu();
+        } catch(e) {
+            console.warn('Error al cargar menú:', e);
+        }
+    })();
+</script>
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

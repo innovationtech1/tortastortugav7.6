@@ -10,12 +10,6 @@ const STRIPE_PK = 'pk_test_51TYeb5D50m9DLc4teUV79AZGoopwCp2qoblTAoZcMJsNmwCGzoGC
 let STRIPE_PAYMENT_LINK = ''; // Se llenará cuando el usuario cree su Payment Link
 const APPS_SCRIPT_URL = 'TU_APPS_SCRIPT_URL';
 
-// ─── PRECIOS BASE por id ─────────────────────────────────────────
-const precios = {
-    original: 14, turkey: 14, pork: 14,
-    shrimp: 17, allmeat: 14, vegan: 14, kids: 9
-};
-
 // ─── ESTADO ─────────────────────────────────────────────────────
 let cart = JSON.parse(localStorage.getItem('tt_cart') || '[]');
 let pendingItem = null;
