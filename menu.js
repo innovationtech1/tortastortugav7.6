@@ -31,7 +31,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'turkey', nombre: '2. Turkey or Ham Tortuga',
         descripcion: '1 whole BIG avocado, turkey, ham or mix meat slices with tomato, onions, mayo and queso fresco.',
-        categoria: 'tortas', imagen: 'img/torta-original.png',
+        categoria: 'tortas', imagen: 'img/torta-turkey.png',
         badge: null, incluye: '✅ Can Soda + Chips incluidos', tipo: 'torta',
         variantes: [
             { label: 'A COMBO TRIPLE MEAT · 9 Slices — $17', precio: 17 },
@@ -43,7 +43,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'pork', nombre: '3. Pork Head Chz Tortuga',
         descripcion: '1 whole BIG avocado, pork head cheese meat slices, with tomato, onions, mayo and queso fresco.',
-        categoria: 'tortas', imagen: 'img/torta-original.png',
+        categoria: 'tortas', imagen: 'img/torta-pork.png',
         badge: null, incluye: '✅ Can Soda + Chips incluidos', tipo: 'torta',
         variantes: [
             { label: 'A COMBO TRIPLE MEAT · 12 Slices — $17', precio: 17 },
@@ -125,7 +125,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'squirt', nombre: 'El Squirt Ruso',
         descripcion: 'Clamato juice, fresh lime, Tajin, Cucumber, japanese nuts, chamoy on top.',
-        categoria: 'drinks', imagen: null,
+        categoria: 'drinks', imagen: 'img/squirt-ruso.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'w/ 3 shrimps & red onions — $12', precio: 12 },
@@ -136,7 +136,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'hangover', nombre: 'The Hangover Monster',
         descripcion: 'Clamato juice, fresh lime, sauces, with japanese nuts and red onions on top.',
-        categoria: 'drinks', imagen: null,
+        categoria: 'drinks', imagen: 'img/hangover-monster.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'w/ 3 shrimps — $13', precio: 13 },
@@ -147,7 +147,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'bottle', nombre: 'Bottle Drinks',
         descripcion: null,
-        categoria: 'drinks', imagen: null,
+        categoria: 'drinks', imagen: 'img/bottle-drinks.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'Topo Chico 600 ml — $5', precio: 5 },
@@ -162,7 +162,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'shrimp-botana', nombre: 'Shrimp Botana',
         descripcion: 'Shrimps with Fresh cucumber, red onions, japanese nuts and Clamato juice.',
-        categoria: 'botanas', imagen: null,
+        categoria: 'botanas', imagen: 'img/shrimp-botana.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'LG (15 shrimps) — $20', precio: 20 },
@@ -173,7 +173,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'botana-platter', nombre: 'Botana Platter',
         descripcion: 'Choice of chips, japanese nuts, cucumbers, red onions with chamoy, Tajin.',
-        categoria: 'botanas', imagen: null,
+        categoria: 'botanas', imagen: 'img/botana-platter.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'LG — $12', precio: 12 },
@@ -195,7 +195,7 @@ const PRODUCTOS_INICIALES = [
     {
         productId: 'cucumbersitos', nombre: 'Cucumbersitos',
         descripcion: 'Cucumber slices with chamoy, Tajin and Valentina sauce on top.',
-        categoria: 'botanas', imagen: null,
+        categoria: 'botanas', imagen: 'img/cucumbersitos.png',
         badge: null, incluye: null, tipo: 'drink',
         variantes: [
             { label: 'LG — $8', precio: 8 },
